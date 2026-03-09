@@ -1,66 +1,84 @@
+
 <!DOCTYPE html>
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📅 Inteken Weekschema</title>
+    <title>📅 Inteken Weekschema - Pro Edition v2</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
-            min-height: 100vh;
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            padding: 20px; min-height: 100vh; 
         }
         .container { max-width: 1200px; margin: 0 auto; }
-        .header {
+        .header { 
             background: white; padding: 30px; border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 30px; text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 30px; text-align: center; 
         }
         .header h1 { color: #1F4E78; font-size: 28px; margin-bottom: 10px; }
-        .header p { color: #666; font-size: 14px; }
-        .content {
+        .content { 
             background: white; padding: 30px; border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
         }
-        select {
+        select { 
             width: 100%; padding: 12px; border: 2px solid #ddd;
-            border-radius: 6px; font-size: 14px; margin-bottom: 20px;
+            border-radius: 6px; font-size: 14px; margin-bottom: 20px; 
         }
         .weeks { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
-        .week {
-            background: #f8f9fa; padding: 20px; border-radius: 8px;
-            border-left: 4px solid #667eea;
-        }
-        .week h3 { color: #1F4E78; margin-bottom: 10px; }
-        .day {
-            background: white; padding: 12px; border-radius: 6px;
-            margin-bottom: 10px; border: 1px solid #ddd;
-        }
+        .week { background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #667eea; }
+        .week h3 { color: #1F4E78; margin-bottom: 10px; font-size: 14px; }
+        .week-capacity { font-size: 11px; color: #999; margin-bottom: 10px; }
+        .day { background: white; padding: 12px; border-radius: 6px; margin-bottom: 10px; border: 1px solid #ddd; }
         .day-name { font-weight: bold; color: #1F4E78; font-size: 12px; }
         .day-date { font-size: 11px; color: #666; }
-        .btn {
+        .btn { 
             width: 100%; padding: 8px; margin-top: 8px;
             background: #667eea; color: white; border: none;
-            border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;
+            border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; transition: all 0.3s;
         }
-        .btn:hover { background: #764ba2; }
+        .btn:hover:not(:disabled) { background: #764ba2; }
         .btn.selected { background: #70AD47; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; opacity: 0.6; }
         .btn.full { background: #FFB3B3; color: #9C0006; cursor: not-allowed; }
-        .stats {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
-            margin-top: 20px; padding: 15px; background: #f0f2f5; border-radius: 8px;
+        .stats { 
+            display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 15px;
+            margin-top: 20px; padding: 15px; background: #f0f2f5; border-radius: 8px; 
         }
         .stat { text-align: center; }
         .stat-value { font-size: 24px; font-weight: bold; color: #667eea; }
         .stat-label { font-size: 12px; color: #666; margin-top: 5px; }
+        .status-box {
+            background: #FFF3CD; padding: 15px; border-radius: 8px; 
+            margin-top: 20px; border-left: 4px solid #FFC000;
+        }
+        .status-box.confirmed { background: #C6EFCE; border-left-color: #70AD47; }
+        .status-box.locked { background: #FFE5E5; border-left-color: #FF6B6B; }
+        .confirm-btn {
+            width: 100%; padding: 12px; background: #70AD47; color: white; 
+            border: none; border-radius: 6px; font-weight: bold; cursor: pointer;
+            margin-top: 15px; font-size: 14px;
+        }
+        .confirm-btn:hover { background: #5a8c39; }
+        .confirm-btn:disabled { background: #ccc; cursor: not-allowed; }
+        .warning { color: #FF6B6B; font-weight: bold; font-size: 12px; margin-top: 5px; }
+        .special { background: #FFF3CD; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 13px; }
+        .legend {
+            display: flex; gap: 15px; margin-bottom: 20px; padding: 15px;
+            background: #f0f2f5; border-radius: 8px; font-size: 12px; flex-wrap: wrap;
+        }
+        .legend-item { display: flex; align-items: center; gap: 8px; }
+        .legend-color {
+            width: 20px; height: 20px; border-radius: 3px; border: 2px solid #ddd;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📅 Inteken Weekschema</h1>
-            <p>Selecteer jezelf en zet je dagdelen in</p>
+            <h1>📅 Inteken Weekschema - Pro Edition v2</h1>
+            <p>Max 40-60 uur | Weekplanning gechecked | Bevestiging required</p>
         </div>
         
         <div class="content">
@@ -70,12 +88,12 @@
                 <option value="D01">Hendrikje Balkenende</option>
                 <option value="D02">Rosanne Bartels</option>
                 <option value="D03">Bea Blumenstein</option>
-                <option value="D04">Jochem Borst</option>
-                <option value="D05">Ineke Braam</option>
+                <option value="D04">Jochem Borst ⭐ 60 uur</option>
+                <option value="D05">Ineke Braam ⭐ 60 uur</option>
                 <option value="D06">Hans Brunt</option>
                 <option value="D07">Judith van der Griendt</option>
                 <option value="D08">Helen Hilgeman</option>
-                <option value="D09">Christiaan Hoekstra</option>
+                <option value="D09">Christiaan Hoekstra ⭐ 60 uur</option>
                 <option value="D10">Marieke Meesters</option>
                 <option value="D11">Liekie Nipius</option>
                 <option value="D12">Zeliha Özmen</option>
@@ -92,6 +110,29 @@
             </select>
 
             <div id="content" style="display: none;">
+                <div id="specialNote" class="special" style="display: none;">
+                    ⭐ Jij bent een senior docent met 60 uur beschikbaarheid (ipv 40 uur)
+                </div>
+
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #667eea; border-color: #667eea;"></div>
+                        <span>Beschikbaar</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #70AD47; border-color: #70AD47;"></div>
+                        <span>Jij ingetekend</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #FFB3B3; border-color: #FF6B6B;"></div>
+                        <span>Groep vol (max 3)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ccc; border-color: #999;"></div>
+                        <span>Max uren bereikt</span>
+                    </div>
+                </div>
+
                 <div class="stats">
                     <div class="stat">
                         <div class="stat-value" id="totalDays">0</div>
@@ -99,31 +140,54 @@
                     </div>
                     <div class="stat">
                         <div class="stat-value" id="totalHours">0</div>
-                        <div class="stat-label">Uren</div>
+                        <div class="stat-label" id="hourLabel">Uren (max 40)</div>
                     </div>
+                    <div class="stat">
+                        <div class="stat-value" id="changes">2</div>
+                        <div class="stat-label">Wijzigingen over</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="weekCapacity">✓</div>
+                        <div class="stat-label">Week Status</div>
+                    </div>
+                </div>
+
+                <div id="statusBox" class="status-box" style="display: none;">
+                    <div id="statusText"></div>
                 </div>
 
                 <h2 style="color: #1F4E78; margin-top: 30px; margin-bottom: 15px;">📅 Kies je dagdelen:</h2>
                 <div class="weeks" id="weeks"></div>
 
-                <button onclick="clearAll()" style="width: 100%; padding: 12px; background: #FF6B6B; color: white; border: none; border-radius: 6px; font-weight: bold; margin-top: 20px; cursor: pointer;">🗑️ Wis alles</button>
+                <button id="confirmBtn" class="confirm-btn" onclick="confirmInzet()" style="display: none;">
+                    ✓ Bevestig mijn inzetting
+                </button>
+
+                <button onclick="resetInzet()" style="width: 100%; padding: 12px; background: #FF6B6B; color: white; border: none; border-radius: 6px; font-weight: bold; margin-top: 20px; cursor: pointer;">🗑️ Wis alles</button>
             </div>
         </div>
     </div>
 
     <script>
         const weeks = [
-            { week: 1, start: new Date(2024, 4, 27) },
-            { week: 2, start: new Date(2024, 5, 3) },
-            { week: 3, start: new Date(2024, 5, 10) },
-            { week: 4, start: new Date(2024, 5, 17) },
-            { week: 5, start: new Date(2024, 5, 24) },
-            { week: 6, start: new Date(2024, 6, 1) },
-            { week: 7, start: new Date(2024, 6, 8) }
+            { week: 1, start: new Date(2024, 4, 27), maxUren: 10 },
+            { week: 2, start: new Date(2024, 5, 3), maxUren: 14 },
+            { week: 3, start: new Date(2024, 5, 10), maxUren: 21 },
+            { week: 4, start: new Date(2024, 5, 17), maxUren: 28 },
+            { week: 5, start: new Date(2024, 5, 24), maxUren: 36 },
+            { week: 6, start: new Date(2024, 6, 1), maxUren: 55 },
+            { week: 7, start: new Date(2024, 6, 8), maxUren: 66 }
         ];
 
         const days = ['Ma', 'Di', 'Wo', 'Do', 'Vr'];
         const months = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul'];
+        
+        // 60 uur docenten
+        const max60Docenten = ['D04', 'D05', 'D09'];
+
+        function getMaxUren(docentId) {
+            return max60Docenten.includes(docentId) ? 60 : 40;
+        }
 
         function formatDate(d) {
             return d.getDate() + ' ' + months[d.getMonth()];
@@ -139,6 +203,33 @@
             return dates;
         }
 
+        function getStatus(docentId) {
+            let status = JSON.parse(localStorage.getItem(`status_${docentId}`) || '{"confirmed": false, "changesLeft": 2}');
+            return status;
+        }
+
+        function setStatus(docentId, status) {
+            localStorage.setItem(`status_${docentId}`, JSON.stringify(status));
+        }
+
+        function countDocentsInSlot(week, day, type) {
+            let key = `W${week}-D${day}-${type}`;
+            let allInzetten = JSON.parse(localStorage.getItem('allInzetten') || '{}');
+            return Object.values(allInzetten).filter(slots => slots && slots[key]).length;
+        }
+
+        function countWeekUren(week) {
+            let allInzetten = JSON.parse(localStorage.getItem('allInzetten') || '{}');
+            let count = 0;
+            Object.values(allInzetten).forEach(docentSlots => {
+                if (!docentSlots) return;
+                for (let key in docentSlots) {
+                    if (key.startsWith(`W${week}-`)) count++;
+                }
+            });
+            return count * 4;
+        }
+
         function loadDocent() {
             let id = document.getElementById('docentSelect').value;
             if (!id) {
@@ -146,24 +237,65 @@
                 return;
             }
             document.getElementById('content').style.display = 'block';
+            
+            let maxUren = getMaxUren(id);
+            document.getElementById('hourLabel').textContent = `Uren (max ${maxUren})`;
+            
+            if (max60Docenten.includes(id)) {
+                document.getElementById('specialNote').style.display = 'block';
+            } else {
+                document.getElementById('specialNote').style.display = 'none';
+            }
+
             renderWeeks(id);
             updateStats(id);
+            updateStatusBox(id);
         }
 
         function renderWeeks(docentId) {
             let html = '';
+            let maxUren = getMaxUren(docentId);
             weeks.forEach(w => {
                 let dates = getDates(w.start);
-                html += `<div class="week"><h3>Week ${w.week}</h3>`;
+                let weekUren = countWeekUren(w.week);
+                html += `<div class="week">
+                    <h3>Week ${w.week}</h3>
+                    <div class="week-capacity">Max week: ${w.maxUren}u | Huidig: ${weekUren}u</div>`;
                 dates.forEach((date, i) => {
                     let key = `${docentId}-W${w.week}-D${i}`;
-                    let selected = localStorage.getItem(key) ? 'selected' : '';
+                    let allInzetten = JSON.parse(localStorage.getItem('allInzetten') || '{}');
+                    let docentInzetten = allInzetten[docentId] || {};
+                    let isSelected = docentInzetten[key];
+                    
+                    let ochtendKey = `W${w.week}-D${i}-O`;
+                    let middagKey = `W${w.week}-D${i}-M`;
+                    let ochtendCount = countDocentsInSlot(w.week, i, 'O');
+                    let middagCount = countDocentsInSlot(w.week, i, 'M');
+                    
+                    let totalHours = Object.keys(docentInzetten).length * 4;
+                    let canAddMore = totalHours < maxUren;
+                    let status = getStatus(docentId);
+                    let isLocked = status.confirmed && status.changesLeft === 0;
+                    
                     html += `
                         <div class="day">
                             <div class="day-name">${days[i]}</div>
                             <div class="day-date">${formatDate(date)}</div>
-                            <button class="btn ${selected}" onclick="toggle('${key}', ${docentId == 'D01'})">
-                                ${localStorage.getItem(key) ? '✓ Ingezet' : 'Inzetten'}
+                            <button class="btn ${isSelected && docentInzetten[ochtendKey] ? 'selected' : ''} 
+                                ${ochtendCount >= 3 && !docentInzetten[ochtendKey] ? 'full' : ''} 
+                                ${!canAddMore && !docentInzetten[ochtendKey] ? 'disabled' : ''}
+                                ${isLocked && !docentInzetten[ochtendKey] ? 'disabled' : ''}
+                                " 
+                                onclick="toggle('${docentId}', '${ochtendKey}')">
+                                O ${docentInzetten[ochtendKey] ? '✓' : ''}
+                            </button>
+                            <button class="btn ${isSelected && docentInzetten[middagKey] ? 'selected' : ''} 
+                                ${middagCount >= 3 && !docentInzetten[middagKey] ? 'full' : ''} 
+                                ${!canAddMore && !docentInzetten[middagKey] ? 'disabled' : ''}
+                                ${isLocked && !docentInzetten[middagKey] ? 'disabled' : ''}
+                                " 
+                                onclick="toggle('${docentId}', '${middagKey}')">
+                                M ${docentInzetten[middagKey] ? '✓' : ''}
                             </button>
                         </div>
                     `;
@@ -173,38 +305,111 @@
             document.getElementById('weeks').innerHTML = html;
         }
 
-        function toggle(key, force) {
-            if (localStorage.getItem(key)) {
-                localStorage.removeItem(key);
-            } else {
-                localStorage.setItem(key, '1');
+        function toggle(docentId, key) {
+            let allInzetten = JSON.parse(localStorage.getItem('allInzetten') || '{}');
+            let docentInzetten = allInzetten[docentId] || {};
+            let status = getStatus(docentId);
+            let maxUren = getMaxUren(docentId);
+            
+            if (status.confirmed && status.changesLeft === 0) {
+                alert('❌ Je hebt geen wijzigingen meer over. Contact je beheerder.');
+                return;
             }
-            let id = document.getElementById('docentSelect').value;
-            renderWeeks(id);
-            updateStats(id);
+
+            let totalHours = Object.keys(docentInzetten).length * 4;
+
+            if (docentInzetten[key]) {
+                delete docentInzetten[key];
+            } else {
+                if (totalHours >= maxUren) {
+                    alert(`❌ Je hebt het maximum van ${maxUren} uren bereikt!`);
+                    return;
+                }
+                docentInzetten[key] = true;
+                
+                if (status.confirmed) {
+                    status.changesLeft--;
+                    setStatus(docentId, status);
+                }
+            }
+
+            allInzetten[docentId] = docentInzetten;
+            localStorage.setItem('allInzetten', JSON.stringify(allInzetten));
+
+            if (status.confirmed && status.changesLeft > 0) {
+                status.confirmed = false;
+                setStatus(docentId, status);
+            }
+
+            renderWeeks(docentId);
+            updateStats(docentId);
+            updateStatusBox(docentId);
         }
 
         function updateStats(docentId) {
-            let count = 0;
-            for (let i = 1; i <= 7; i++) {
-                for (let j = 0; j < 5; j++) {
-                    if (localStorage.getItem(`${docentId}-W${i}-D${j}`)) count++;
-                }
-            }
+            let allInzetten = JSON.parse(localStorage.getItem('allInzetten') || '{}');
+            let docentInzetten = allInzetten[docentId] || {};
+            let count = Object.keys(docentInzetten).length;
+            let hours = count * 4;
+            let status = getStatus(docentId);
+            let maxUren = getMaxUren(docentId);
+
             document.getElementById('totalDays').textContent = count;
-            document.getElementById('totalHours').textContent = count * 4;
+            document.getElementById('totalHours').textContent = hours;
+            document.getElementById('changes').textContent = status.changesLeft;
+            document.getElementById('weekCapacity').textContent = '✓';
+            
+            let confirmBtn = document.getElementById('confirmBtn');
+            if (count > 0 && !status.confirmed) {
+                confirmBtn.style.display = 'block';
+            } else {
+                confirmBtn.style.display = 'none';
+            }
         }
 
-        function clearAll() {
+        function updateStatusBox(docentId) {
+            let status = getStatus(docentId);
+            let statusBox = document.getElementById('statusBox');
+            let statusText = document.getElementById('statusText');
+
+            if (status.confirmed) {
+                statusBox.className = 'status-box confirmed';
+                if (status.changesLeft === 0) {
+                    statusText.innerHTML = '✓ <strong>BEVESTIGD EN VERGRENDELD</strong><br>Je inzetting is vastgesteld. Alleen de beheerder kan dit nog wijzigen.';
+                } else {
+                    statusText.innerHTML = `✓ <strong>BEVESTIGD</strong><br>Je hebt nog <strong>${status.changesLeft}</strong> wijziging(en) over.`;
+                }
+                statusBox.style.display = 'block';
+            } else {
+                statusBox.style.display = 'none';
+            }
+        }
+
+        function confirmInzet() {
+            let id = document.getElementById('docentSelect').value;
+            let status = getStatus(id);
+            status.confirmed = true;
+            setStatus(id, status);
+            updateStats(id);
+            updateStatusBox(id);
+            alert('✓ Je inzetting is bevestigd! Je hebt nog 2 keer de mogelijkheid om dit te wijzigen.');
+        }
+
+        function resetInzet() {
             if (confirm('Wil je ALLE je inzetten verwijderen?')) {
                 let id = document.getElementById('docentSelect').value;
-                for (let i = 1; i <= 7; i++) {
-                    for (let j = 0; j < 5; j++) {
-                        localStorage.removeItem(`${id}-W${i}-D${j}`);
-                    }
-                }
+                let allInzetten = JSON.parse(localStorage.getItem('allInzetten') || '{}');
+                delete allInzetten[id];
+                localStorage.setItem('allInzetten', JSON.stringify(allInzetten));
+
+                let status = getStatus(id);
+                status.confirmed = false;
+                status.changesLeft = 2;
+                setStatus(id, status);
+
                 renderWeeks(id);
                 updateStats(id);
+                updateStatusBox(id);
             }
         }
     </script>
