@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📅 Inteken Weekschema</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header {
+            background: white; padding: 30px; border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 30px; text-align: center;
+        }
+        .header h1 { color: #1F4E78; font-size: 28px; margin-bottom: 10px; }
+        .header p { color: #666; font-size: 14px; }
+        .content {
+            background: white; padding: 30px; border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        select {
+            width: 100%; padding: 12px; border: 2px solid #ddd;
+            border-radius: 6px; font-size: 14px; margin-bottom: 20px;
+        }
+        .weeks { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
+        .week {
+            background: #f8f9fa; padding: 20px; border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .week h3 { color: #1F4E78; margin-bottom: 10px; }
+        .day {
+            background: white; padding: 12px; border-radius: 6px;
+            margin-bottom: 10px; border: 1px solid #ddd;
+        }
+        .day-name { font-weight: bold; color: #1F4E78; font-size: 12px; }
+        .day-date { font-size: 11px; color: #666; }
+        .btn {
+            width: 100%; padding: 8px; margin-top: 8px;
+            background: #667eea; color: white; border: none;
+            border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;
+        }
+        .btn:hover { background: #764ba2; }
+        .btn.selected { background: #70AD47; }
+        .btn.full { background: #FFB3B3; color: #9C0006; cursor: not-allowed; }
+        .stats {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
+            margin-top: 20px; padding: 15px; background: #f0f2f5; border-radius: 8px;
+        }
+        .stat { text-align: center; }
+        .stat-value { font-size: 24px; font-weight: bold; color: #667eea; }
+        .stat-label { font-size: 12px; color: #666; margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📅 Inteken Weekschema</h1>
+            <p>Selecteer jezelf en zet je dagdelen in</p>
+        </div>
+        
+        <div class="content">
+            <h2 style="color: #1F4E78; margin-bottom: 15px;">👤 Selecteer jezelf:</h2>
+            <select id="docentSelect" onchange="loadDocent()">
+                <option value="">-- Kies je naam --</option>
+                <option value="D01">Hendrikje Balkenende</option>
+                <option value="D02">Rosanne Bartels</option>
+                <option value="D03">Bea Blumenstein</option>
+                <option value="D04">Jochem Borst</option>
+                <option value="D05">Ineke Braam</option>
+                <option value="D06">Hans Brunt</option>
+                <option value="D07">Judith van der Griendt</option>
+                <option value="D08">Helen Hilgeman</option>
+                <option value="D09">Christiaan Hoekstra</option>
+                <option value="D10">Marieke Meesters</option>
+                <option value="D11">Liekie Nipius</option>
+                <option value="D12">Zeliha Özmen</option>
+                <option value="D13">Zeliha Yilman</option>
+                <option value="D14">Esma Yüzgec</option>
+                <option value="D15">Eveline van de Pool</option>
+                <option value="D16">Vivian van de Wal</option>
+                <option value="D17">Lisa Vos</option>
+                <option value="D18">Franka de Bruijn</option>
+                <option value="D19">Niels Lodewijk</option>
+                <option value="D20">Anass Sbai</option>
+                <option value="D21">Dilan Tsusiz</option>
+                <option value="D22">Heba Sharaawy</option>
+            </select>
+
+            <div id="content" style="display: none;">
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-value" id="totalDays">0</div>
+                        <div class="stat-label">Dagdelen</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="totalHours">0</div>
+                        <div class="stat-label">Uren</div>
+                    </div>
+                </div>
+
+                <h2 style="color: #1F4E78; margin-top: 30px; margin-bottom: 15px;">📅 Kies je dagdelen:</h2>
+                <div class="weeks" id="weeks"></div>
+
+                <button onclick="clearAll()" style="width: 100%; padding: 12px; background: #FF6B6B; color: white; border: none; border-radius: 6px; font-weight: bold; margin-top: 20px; cursor: pointer;">🗑️ Wis alles</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const weeks = [
+            { week: 1, start: new Date(2024, 4, 27) },
+            { week: 2, start: new Date(2024, 5, 3) },
+            { week: 3, start: new Date(2024, 5, 10) },
+            { week: 4, start: new Date(2024, 5, 17) },
+            { week: 5, start: new Date(2024, 5, 24) },
+            { week: 6, start: new Date(2024, 6, 1) },
+            { week: 7, start: new Date(2024, 6, 8) }
+        ];
+
+        const days = ['Ma', 'Di', 'Wo', 'Do', 'Vr'];
+        const months = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul'];
+
+        function formatDate(d) {
+            return d.getDate() + ' ' + months[d.getMonth()];
+        }
+
+        function getDates(start) {
+            let dates = [];
+            for (let i = 0; i < 5; i++) {
+                let d = new Date(start);
+                d.setDate(d.getDate() + i);
+                dates.push(d);
+            }
+            return dates;
+        }
+
+        function loadDocent() {
+            let id = document.getElementById('docentSelect').value;
+            if (!id) {
+                document.getElementById('content').style.display = 'none';
+                return;
+            }
+            document.getElementById('content').style.display = 'block';
+            renderWeeks(id);
+            updateStats(id);
+        }
+
+        function renderWeeks(docentId) {
+            let html = '';
+            weeks.forEach(w => {
+                let dates = getDates(w.start);
+                html += `<div class="week"><h3>Week ${w.week}</h3>`;
+                dates.forEach((date, i) => {
+                    let key = `${docentId}-W${w.week}-D${i}`;
+                    let selected = localStorage.getItem(key) ? 'selected' : '';
+                    html += `
+                        <div class="day">
+                            <div class="day-name">${days[i]}</div>
+                            <div class="day-date">${formatDate(date)}</div>
+                            <button class="btn ${selected}" onclick="toggle('${key}', ${docentId == 'D01'})">
+                                ${localStorage.getItem(key) ? '✓ Ingezet' : 'Inzetten'}
+                            </button>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            });
+            document.getElementById('weeks').innerHTML = html;
+        }
+
+        function toggle(key, force) {
+            if (localStorage.getItem(key)) {
+                localStorage.removeItem(key);
+            } else {
+                localStorage.setItem(key, '1');
+            }
+            let id = document.getElementById('docentSelect').value;
+            renderWeeks(id);
+            updateStats(id);
+        }
+
+        function updateStats(docentId) {
+            let count = 0;
+            for (let i = 1; i <= 7; i++) {
+                for (let j = 0; j < 5; j++) {
+                    if (localStorage.getItem(`${docentId}-W${i}-D${j}`)) count++;
+                }
+            }
+            document.getElementById('totalDays').textContent = count;
+            document.getElementById('totalHours').textContent = count * 4;
+        }
+
+        function clearAll() {
+            if (confirm('Wil je ALLE je inzetten verwijderen?')) {
+                let id = document.getElementById('docentSelect').value;
+                for (let i = 1; i <= 7; i++) {
+                    for (let j = 0; j < 5; j++) {
+                        localStorage.removeItem(`${id}-W${i}-D${j}`);
+                    }
+                }
+                renderWeeks(id);
+                updateStats(id);
+            }
+        }
+    </script>
+</body>
+</html>
