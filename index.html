@@ -34,7 +34,6 @@
         .weeks { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
         .week { background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #667eea; }
         .week h3 { color: #1F4E78; margin-bottom: 10px; font-size: 14px; }
-        .week-capacity { font-size: 11px; color: #999; margin-bottom: 10px; }
         .day { background: white; padding: 12px; border-radius: 6px; margin-bottom: 10px; border: 1px solid #ddd; }
         .day-name { font-weight: bold; color: #1F4E78; font-size: 12px; }
         .day-date { font-size: 11px; color: #666; }
@@ -46,28 +45,19 @@
         .btn:hover:not(:disabled) { background: #764ba2; }
         .btn.selected { background: #70AD47; }
         .btn:disabled { background: #ccc; cursor: not-allowed; opacity: 0.6; }
-        .btn.full { background: #FFB3B3; color: #9C0006; cursor: not-allowed; }
         .stats { 
-            display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 15px;
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;
             margin-top: 20px; padding: 15px; background: #f0f2f5; border-radius: 8px; 
         }
         .stat { text-align: center; }
         .stat-value { font-size: 24px; font-weight: bold; color: #667eea; }
         .stat-label { font-size: 12px; color: #666; margin-top: 5px; }
-        .status-box {
-            background: #FFF3CD; padding: 15px; border-radius: 8px; 
-            margin-top: 20px; border-left: 4px solid #FFC000;
-        }
-        .status-box.confirmed { background: #C6EFCE; border-left-color: #70AD47; }
-        .status-box.locked { background: #FFE5E5; border-left-color: #FF6B6B; }
         .confirm-btn {
             width: 100%; padding: 12px; background: #70AD47; color: white; 
             border: none; border-radius: 6px; font-weight: bold; cursor: pointer;
             margin-top: 15px; font-size: 14px;
         }
         .confirm-btn:hover { background: #5a8c39; }
-        .confirm-btn:disabled { background: #ccc; cursor: not-allowed; }
-        .loading { text-align: center; color: #999; padding: 20px; }
         .special { background: #FFF3CD; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 13px; }
     </style>
 </head>
@@ -75,12 +65,12 @@
     <div class="container">
         <div class="header">
             <h1>📅 INTAKEWEKEN 12 JUNI-18 JULI 2026</h1>
-            <p>Zet jezelf in voor de gespreksrondes • Max 40-60 uur • Bevestig je inzetting</p>
+            <p>Zet jezelf in voor de gespreksrondes • Max 40-60 uur • Bevestig je inzet</p>
             <div class="instruction-box">
                 <strong>📋 Instructie:</strong><br>
                 1. Selecteer je naam in het dropdown menu<br>
                 2. Plan dagdelen in tot je aan de 40 uur bent<br>
-                3. Let op: Plan tenminste een aantal dagdelen in de <strong>laatste twee weken</strong> (week 6 & 7)<br>
+                3. Let op: Plan tenminste een aantal dagdelen in de <strong>laatste twee weken</strong><br>
                 4. Bevestig je inzet wanneer je klaar bent
             </div>
         </div>
@@ -114,7 +104,6 @@
                 <option value="D23">Irene Bakker</option>
                 <option value="D24">Robert Reijns</option>
                 <option value="D25">Annie van der Velden</option>
-                <option value="D26">Leon Molijn</option>
             </select>
 
             <div id="content" style="display: none;">
@@ -132,17 +121,9 @@
                         <div class="stat-label" id="hourLabel">Uren (max 40)</div>
                     </div>
                     <div class="stat">
-                        <div class="stat-value" id="changes">2</div>
-                        <div class="stat-label">Wijzigingen over</div>
-                    </div>
-                    <div class="stat">
                         <div class="stat-value" id="syncStatus">✓</div>
                         <div class="stat-label">Sync Status</div>
                     </div>
-                </div>
-
-                <div id="statusBox" class="status-box" style="display: none;">
-                    <div id="statusText"></div>
                 </div>
 
                 <h2 style="color: #1F4E78; margin-top: 30px; margin-bottom: 15px;">📅 Kies je dagdelen:</h2>
@@ -156,6 +137,9 @@
             </div>
         </div>
     </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
 
     <script>
         // Firebase Config
@@ -185,7 +169,6 @@
 
         const days = ['Ma', 'Di', 'Wo', 'Do', 'Vr'];
         const months = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul'];
-        
         const max60Docenten = ['D04', 'D05', 'D09'];
 
         function getMaxUren(docentId) {
@@ -223,15 +206,11 @@
                 document.getElementById('specialNote').style.display = 'none';
             }
 
-            loadFromFirebase(id);
-        }
-
-        function loadFromFirebase(docentId) {
-            db.ref('inzetten/' + docentId).on('value', function(snapshot) {
-                const data = snapshot.val() || {};
-                renderWeeks(docentId, data);
-                updateStats(docentId, data);
-                loadStatus(docentId);
+            // Laad data van Firebase
+            db.ref('inzetten/' + id).once('value').then(function(snapshot) {
+                const docentInzetten = snapshot.val() || {};
+                renderWeeks(id, docentInzetten);
+                updateStats(id, docentInzetten);
             });
         }
 
@@ -272,7 +251,7 @@
         }
 
         function toggleInzet(docentId, key) {
-            db.ref('inzetten/' + docentId).once('value', function(snapshot) {
+            db.ref('inzetten/' + docentId).once('value').then(function(snapshot) {
                 let docentInzetten = snapshot.val() || {};
                 let maxUren = getMaxUren(docentId);
                 let totalHours = Object.keys(docentInzetten).length * 4;
@@ -287,14 +266,15 @@
                     docentInzetten[key] = true;
                 }
 
-                db.ref('inzetten/' + docentId).set(docentInzetten);
+                db.ref('inzetten/' + docentId).set(docentInzetten).then(() => {
+                    loadDocent(); // Refresh na opslaan
+                });
             });
         }
 
         function updateStats(docentId, docentInzetten) {
             let count = Object.keys(docentInzetten).length;
             let hours = count * 4;
-            let maxUren = getMaxUren(docentId);
 
             document.getElementById('totalDays').textContent = count;
             document.getElementById('totalHours').textContent = hours;
@@ -307,54 +287,22 @@
             }
         }
 
-        function loadStatus(docentId) {
-            db.ref('status/' + docentId).on('value', function(snapshot) {
-                const status = snapshot.val() || { confirmed: false, changesLeft: 2 };
-                updateStatusBox(docentId, status);
-                document.getElementById('changes').textContent = status.changesLeft;
-            });
-        }
-
-        function updateStatusBox(docentId, status) {
-            let statusBox = document.getElementById('statusBox');
-            let statusText = document.getElementById('statusText');
-
-            if (status.confirmed) {
-                statusBox.className = 'status-box confirmed';
-                if (status.changesLeft === 0) {
-                    statusText.innerHTML = '✓ <strong>BEVESTIGD EN VERGRENDELD</strong><br>Je inzetting is vastgesteld. Alleen de beheerder kan dit nog wijzigen.';
-                } else {
-                    statusText.innerHTML = `✓ <strong>BEVESTIGD</strong><br>Je hebt nog <strong>${status.changesLeft}</strong> wijziging(en) over.`;
-                }
-                statusBox.style.display = 'block';
-            } else {
-                statusBox.style.display = 'none';
-            }
-        }
-
         function confirmInzet() {
             let id = document.getElementById('docentSelect').value;
             db.ref('status/' + id).set({
                 confirmed: true,
                 changesLeft: 2
             });
-            alert('✓ Je inzetting is bevestigd! Je hebt nog 2 keer de mogelijkheid om dit te wijzigen.');
+            alert('✓ Je inzet is bevestigd!');
         }
 
         function resetInzet() {
             if (confirm('Wil je ALLE je inzetten verwijderen?')) {
                 let id = document.getElementById('docentSelect').value;
                 db.ref('inzetten/' + id).set({});
-                db.ref('status/' + id).set({
-                    confirmed: false,
-                    changesLeft: 2
-                });
+                loadDocent();
             }
         }
     </script>
-
-    <!-- Firebase Scripts (moeten EERST geladen worden!) -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
 </body>
 </html>
