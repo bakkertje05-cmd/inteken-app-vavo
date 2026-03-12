@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📅 INTAKEWEKEN 12 JUNI-18 JULI 2026</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -59,6 +61,7 @@
         }
         .confirm-btn:hover { background: #5a8c39; }
         .time-slot { font-size: 10px; color: #999; margin-top: 2px; }
+        .loading { text-align: center; color: #999; padding: 20px; }
     </style>
 </head>
 <body>
@@ -68,7 +71,7 @@
             <p>Zet jezelf in voor de gespreksrondes • Max 40-60 uur • Bevestig je inzet</p>
             <div class="instruction-box">
                 <strong>📋 Instructie:</strong><br>
-                1. Selecteer je naam • 2. Klik datum plus ochtend (10-12u) en/of middag (13-16u) • 3. Bevestig wanneer klaar<br>
+                1. Selecteer je naam • 2. Klik ochtend (10-12u) of middag (13-16u) • 3. Bevestig wanneer klaar<br>
                 <strong>Ochtend = 2 uur | Middag = 3 uur</strong>
             </div>
         </div>
@@ -97,12 +100,11 @@
                 <option value="D18">Franka de Bruijn</option>
                 <option value="D19">Niels Lodewijk</option>
                 <option value="D20">Anass Sbai</option>
-                <option value="D21">Dilan Tivsiz</option>
+                <option value="D21">Dilan Tsusiz</option>
                 <option value="D22">Heba Sharaawy</option>
                 <option value="D23">Irene Bakker</option>
                 <option value="D24">Robert Reijns</option>
-                <option value="D25">Annie van der Velden</option>
-                <option value="D26">Leon Molijn</option>
+                <option value="D25">Leon Molijn</option>
             </select>
 
             <div id="appContent" style="display: none;">
@@ -125,7 +127,7 @@
                 <div class="weeks" id="weeks"></div>
 
                 <button id="confirmBtn" class="confirm-btn" onclick="confirmInzet()" style="display: none; margin-top: 20px;">
-                    ✓ Bevestig mijn inzetting
+                    ✓ Bevestig mijn inzet
                 </button>
 
                 <button onclick="resetAll()" style="width: 100%; padding: 12px; background: #FF6B6B; color: white; border: none; border-radius: 6px; font-weight: bold; margin-top: 20px; cursor: pointer;">🗑️ Wis alles</button>
@@ -134,14 +136,27 @@
     </div>
 
     <script>
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBSEJIdGx0jhySaF73vWxEjvFezOUr0P10",
+            authDomain: "intake-app-2026.firebaseapp.com",
+            databaseURL: "https://intake-app-2026-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "intake-app-2026",
+            storageBucket: "intake-app-2026.firebasestorage.app",
+            messagingSenderId: "387454682734",
+            appId: "1:387454682734:web:bb28e5136ab1891bc7887f"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
         const weeks = [
-            
-            { week: 1, start: new Date(2026, 5, 15) },   // 15 juni 2026
-            { week: 2, start: new Date(2026, 5, 22) },   // 22 juni 2026
-            { week: 3, start: new Date(2026, 5, 29) },   // 29 juni 2026
-            { week: 4, start: new Date(2026, 6, 6) },    // 6 juli 2026
-            { week: 5, start: new Date(2026, 6, 13) },   // 13 juli 2026
-            
+            { week: 1, start: new Date(2026, 5, 12) },   // Week 1: ALLEEN VRIJDAG 12 juni
+            { week: 2, start: new Date(2026, 5, 15) },   // Week 2: Ma 15 - Vr 19 juni
+            { week: 3, start: new Date(2026, 5, 22) },   // Week 3: Ma 22 - Vr 26 juni
+            { week: 4, start: new Date(2026, 5, 29) },   // Week 4: Ma 29 - Vr 3 juli
+            { week: 5, start: new Date(2026, 6, 6) },    // Week 5: Ma 6 - Vr 10 juli
+            { week: 6, start: new Date(2026, 6, 13) }    // Week 6: Ma 13 - Vr 17 juli
         ];
 
         const days = ['Ma', 'Di', 'Wo', 'Do', 'Vr'];
@@ -175,35 +190,54 @@
             document.getElementById('appContent').style.display = 'block';
             document.getElementById('maxLabel').textContent = `Uren (max ${getMax(id)})`;
             
-            renderWeeks(id);
-            updateStats(id);
+            loadFromFirebase(id);
         }
 
-        function renderWeeks(id) {
+        function loadFromFirebase(id) {
+            db.ref('inzetten/' + id).once('value').then(snapshot => {
+                const data = snapshot.val() || {};
+                renderWeeks(id, data);
+                updateStats(id, data);
+            }).catch(err => console.error('Firebase error:', err));
+        }
+
+        function renderWeeks(id, inzetten) {
             let html = '';
             weeks.forEach(w => {
                 let dates = getDates(w.start);
-                let endDate = new Date(dates[4]);
-                let dateRange = `${formatDate(dates[0])}-${formatDate(endDate)}`;
+                
+                // Week 1: ALLEEN VRIJDAG
+                let daysToShow = dates;
+                if (w.week === 1) {
+                    daysToShow = [dates[4]]; // Alleen vrijdag
+                }
+                
+                let endDate = new Date(daysToShow[daysToShow.length - 1]);
+                let dateRange = `${formatDate(daysToShow[0])}-${formatDate(endDate)}`;
                 html += `<div class="week"><h3>Week ${w.week} • ${dateRange}</h3>`;
-                dates.forEach((date, i) => {
-                    const ochtendKey = `${id}-W${w.week}-D${i}-O`;
-                    const middagKey = `${id}-W${w.week}-D${i}-M`;
-                    const ochtendChecked = localStorage.getItem(ochtendKey) ? 'selected' : '';
-                    const middagChecked = localStorage.getItem(middagKey) ? 'selected' : '';
-                    const ochtendDisabled = !canAdd(id, 2) && !localStorage.getItem(ochtendKey) ? 'disabled' : '';
-                    const middagDisabled = !canAdd(id, 3) && !localStorage.getItem(middagKey) ? 'disabled' : '';
+                
+                daysToShow.forEach((date, idx) => {
+                    // Bepaal de juiste dayIndex voor week 1 (altijd 4 = vrijdag)
+                    const dayIdx = w.week === 1 ? 4 : idx;
+                    const dayName = days[dayIdx];
+                    
+                    const ochtendKey = `${id}-W${w.week}-D${dayIdx}-O`;
+                    const middagKey = `${id}-W${w.week}-D${dayIdx}-M`;
+                    const ochtendChecked = inzetten[ochtendKey] ? 'selected' : '';
+                    const middagChecked = inzetten[middagKey] ? 'selected' : '';
+                    const ochtendDisabled = !canAdd(id, 2, inzetten) && !inzetten[ochtendKey] ? 'disabled' : '';
+                    const middagDisabled = !canAdd(id, 3, inzetten) && !inzetten[middagKey] ? 'disabled' : '';
                     
                     html += `
                         <div class="day">
-                            <div class="day-name">${days[i]}</div>
+                            <div class="day-name">${dayName}</div>
                             <div class="day-date">${formatDate(date)}</div>
                             <button class="btn ${ochtendChecked} ${ochtendDisabled}" onclick="toggle('${ochtendKey}', '${id}', 2)">
-                                ${localStorage.getItem(ochtendKey) ? '✓ Ochtend' : 'Ochtend'}
+                                ${inzetten[ochtendKey] ? '✓ Ochtend' : 'Ochtend'}
                                 <div class="time-slot">10:00-12:00 (2u)</div>
                             </button>
                             <button class="btn ${middagChecked} ${middagDisabled}" onclick="toggle('${middagKey}', '${id}', 3)">
-                                ${localStorage.getItem(middagKey) ? '✓ Middag' : 'Middag'}
+                                ${inzetten[middagKey] ? '✓ Middag' : 'Middag'}
                                 <div class="time-slot">13:00-16:00 (3u)</div>
                             </button>
                         </div>
@@ -215,53 +249,50 @@
         }
 
         function toggle(key, id, hours) {
-            const max = getMax(id);
-            const totalHours = getTotalHours(id);
-            
-            if (!localStorage.getItem(key)) {
-                if (totalHours + hours > max) {
-                    alert(`❌ Je mag maar ${max} uur! Nu: ${totalHours}u + ${hours}u = ${totalHours + hours}u`);
-                    return;
+            db.ref('inzetten/' + id).once('value').then(snapshot => {
+                let inzetten = snapshot.val() || {};
+                const max = getMax(id);
+                const totalHours = getTotalHours(id, inzetten);
+                
+                if (!inzetten[key]) {
+                    if (totalHours + hours > max) {
+                        alert(`❌ Je mag maar ${max} uur! Nu: ${totalHours}u + ${hours}u = ${totalHours + hours}u`);
+                        return;
+                    }
+                    inzetten[key] = true;
+                } else {
+                    delete inzetten[key];
                 }
-                localStorage.setItem(key, '1');
-            } else {
-                localStorage.removeItem(key);
-            }
-            
-            renderWeeks(id);
-            updateStats(id);
+                
+                db.ref('inzetten/' + id).set(inzetten).then(() => {
+                    loadFromFirebase(id);
+                });
+            });
         }
 
-        function canAdd(id, hours) {
+        function canAdd(id, hours, inzetten) {
             const max = getMax(id);
-            return (getTotalHours(id) + hours) <= max;
+            return (getTotalHours(id, inzetten) + hours) <= max;
         }
 
-        function getTotalHours(id) {
+        function getTotalHours(id, inzetten) {
             let hours = 0;
-            for (let i = 1; i <= 7; i++) {
-                for (let j = 0; j < 5; j++) {
-                    if (localStorage.getItem(`${id}-W${i}-D${j}-O`)) hours += 2;
-                    if (localStorage.getItem(`${id}-W${i}-D${j}-M`)) hours += 3;
+            Object.keys(inzetten).forEach(key => {
+                if (key.includes(`${id}-W`)) {
+                    if (key.endsWith('-O')) hours += 2;
+                    if (key.endsWith('-M')) hours += 3;
                 }
-            }
+            });
             return hours;
         }
 
-        function countSlots(id) {
-            let count = 0;
-            for (let i = 1; i <= 7; i++) {
-                for (let j = 0; j < 5; j++) {
-                    if (localStorage.getItem(`${id}-W${i}-D${j}-O`)) count++;
-                    if (localStorage.getItem(`${id}-W${i}-D${j}-M`)) count++;
-                }
-            }
-            return count;
+        function countSlots(id, inzetten) {
+            return Object.keys(inzetten).filter(key => key.includes(`${id}-W`)).length;
         }
 
-        function updateStats(id) {
-            const hours = getTotalHours(id);
-            const slots = countSlots(id);
+        function updateStats(id, inzetten) {
+            const hours = getTotalHours(id, inzetten);
+            const slots = countSlots(id, inzetten);
             const max = getMax(id);
             const pct = Math.round((hours / max) * 100);
             
@@ -273,19 +304,19 @@
         }
 
         function confirmInzet() {
-            alert('✓ Je inzetting is bevestigd!');
+            const id = document.getElementById('docentSelect').value;
+            db.ref('status/' + id).set({
+                confirmed: true,
+                timestamp: new Date().toISOString()
+            });
+            alert('✓ Je inzet is bevestigd!');
         }
 
         function resetAll() {
             if (confirm('ALLE inzetten wissen?')) {
                 const id = document.getElementById('docentSelect').value;
-                for (let i = 1; i <= 7; i++) {
-                    for (let j = 0; j < 5; j++) {
-                        localStorage.removeItem(`${id}-W${i}-D${j}-O`);
-                        localStorage.removeItem(`${id}-W${i}-D${j}-M`);
-                    }
-                }
-                selectDocent();
+                db.ref('inzetten/' + id).set({});
+                loadFromFirebase(id);
             }
         }
     </script>
