@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎯 Manager Dashboard - INTAKEWEKEN 2026</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -14,6 +16,50 @@
             min-height: 100vh;
         }
         .container { max-width: 1400px; margin: 0 auto; }
+        
+        /* LOGIN SCREEN */
+        .login-screen {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            text-align: center;
+            max-width: 400px;
+        }
+        .login-box h1 { color: #1F4E78; margin-bottom: 20px; font-size: 24px; }
+        .login-box input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .login-btn:hover { background: #764ba2; }
+        .error-msg { color: #FF6B6B; margin-bottom: 20px; font-weight: bold; }
+        
+        /* DASHBOARD */
         .header {
             background: white;
             padding: 30px;
@@ -23,6 +69,9 @@
             text-align: center;
         }
         .header h1 { color: #1F4E78; font-size: 28px; margin-bottom: 10px; }
+        .logout-btn { position: absolute; top: 20px; right: 20px; padding: 8px 16px; background: #FF6B6B; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .logout-btn:hover { background: #cc5555; }
+        
         .card {
             background: white;
             padding: 25px;
@@ -107,45 +156,77 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🎯 Manager Dashboard - INTAKEWEKEN 2026</h1>
-            <p>Live monitoring beschikbaarheid docenten | 12 Juni - 17 Juli 2026</p>
-            <p style="font-size: 12px; color: #999; margin-top: 10px;">Ochtend = 2 uur (10:00-12:00) | Middag = 3 uur (13:00-16:00)</p>
+    <!-- LOGIN SCREEN -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-box">
+            <h1>🔐 Manager Dashboard</h1>
+            <p style="color: #666; margin-bottom: 20px;">Voer je inlogcode in</p>
+            <div id="errorMsg" class="error-msg" style="display: none;"></div>
+            <input id="passwordInput" type="password" placeholder="Inlogcode" onkeypress="handleKeyPress(event)">
+            <button class="login-btn" onclick="checkPassword()">Inloggen</button>
         </div>
+    </div>
 
-        <div class="card">
-            <h2>📊 Overzicht</h2>
-            <div class="stats" id="statsGrid"></div>
-            <div class="info-box">
-                ✓ = Compleet | 📝 = Deels ingevuld
+    <!-- DASHBOARD -->
+    <div id="dashboard" style="display: none;">
+        <button class="logout-btn" onclick="logout()">Uitloggen</button>
+        
+        <div class="container">
+            <div class="header">
+                <h1>🎯 Manager Dashboard - INTAKEWEKEN 2026</h1>
+                <p>Live monitoring beschikbaarheid docenten | 12 Juni - 17 Juli 2026</p>
             </div>
-        </div>
 
-        <div class="card">
-            <h2>👥 Beschikbaarheid Docenten</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Docent</th>
-                        <th>Slots</th>
-                        <th>Uren</th>
-                        <th>Voortgang</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody id="docentBody"></tbody>
-            </table>
-        </div>
+            <div class="card">
+                <h2>📊 Overzicht</h2>
+                <div class="stats" id="statsGrid"></div>
+                <div class="info-box">
+                    ✓ = Compleet | 📝 = Deels ingevuld
+                </div>
+            </div>
 
-        <div class="card">
-            <h2>⚙️ Manager Functies</h2>
-            <button class="btn-export" onclick="exportData()">📥 Export naar CSV</button>
-            <button class="btn-refresh" onclick="location.reload()">🔄 Vernieuwen</button>
+            <div class="card">
+                <h2>👥 Beschikbaarheid Docenten</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Docent</th>
+                            <th>Slots</th>
+                            <th>Uren</th>
+                            <th>Voortgang</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="docentBody"></tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h2>⚙️ Manager Functies</h2>
+                <button class="btn-export" onclick="exportData()">📥 Export naar CSV</button>
+                <button class="btn-refresh" onclick="location.reload()">🔄 Vernieuwen</button>
+            </div>
         </div>
     </div>
 
     <script>
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBSEJIdGx0jhySaF73vWxEjvFezOUr0P10",
+            authDomain: "intake-app-2026.firebaseapp.com",
+            databaseURL: "https://intake-app-2026-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "intake-app-2026",
+            storageBucket: "intake-app-2026.firebasestorage.app",
+            messagingSenderId: "387454682734",
+            appId: "1:387454682734:web:bb28e5136ab1891bc7887f"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // MANAGER INLOGCODE (Verander dit naar je wachtwoord!)
+        const MANAGER_PASSWORD = "Irene0503@@";
+
         const docenten = [
             { id: 'D01', naam: 'Hendrikje Balkenende' },
             { id: 'D02', naam: 'Rosanne Bartels' },
@@ -174,46 +255,64 @@
             { id: 'D25', naam: 'Annie van der Velden' }
         ];
 
+        function checkPassword() {
+            const password = document.getElementById('passwordInput').value;
+            if (password === MANAGER_PASSWORD) {
+                sessionStorage.setItem('managerLoggedIn', 'true');
+                showDashboard();
+            } else {
+                document.getElementById('errorMsg').style.display = 'block';
+                document.getElementById('errorMsg').textContent = '❌ Inlogcode onjuist!';
+                document.getElementById('passwordInput').value = '';
+            }
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') {
+                checkPassword();
+            }
+        }
+
+        function logout() {
+            sessionStorage.removeItem('managerLoggedIn');
+            location.reload();
+        }
+
+        function showDashboard() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            startDashboard();
+        }
+
         function getMaxUren(docentId) {
             const doc = docenten.find(d => d.id === docentId);
             return doc && doc.max ? doc.max : 40;
         }
 
-        function getTotalHours(docentId) {
+        function getTotalHours(docentId, inzetten) {
             let hours = 0;
-            for (let i = 1; i <= 7; i++) {
-                for (let j = 0; j < 5; j++) {
-                    if (localStorage.getItem(`${docentId}-W${i}-D${j}-O`)) hours += 2;  // Ochtend = 2 uur
-                    if (localStorage.getItem(`${docentId}-W${i}-D${j}-M`)) hours += 3;  // Middag = 3 uur
+            Object.keys(inzetten).forEach(key => {
+                if (key.includes(`${docentId}-W`)) {
+                    if (key.endsWith('-O')) hours += 2;
+                    if (key.endsWith('-M')) hours += 3;
                 }
-            }
+            });
             return hours;
         }
 
-        function countSlots(docentId) {
-            let count = 0;
-            for (let i = 1; i <= 7; i++) {
-                for (let j = 0; j < 5; j++) {
-                    if (localStorage.getItem(`${docentId}-W${i}-D${j}-O`)) count++;
-                    if (localStorage.getItem(`${docentId}-W${i}-D${j}-M`)) count++;
-                }
-            }
-            return count;
+        function countSlots(docentId, inzetten) {
+            return Object.keys(inzetten).filter(key => key.includes(`${docentId}-W`)).length;
         }
 
-        function updateDashboard() {
-            updateStats();
-            updateTable();
-        }
-
-        function updateStats() {
+        function updateStats(allInzetten) {
             let totalDocenten = 0;
             let totalUren = 0;
             let totalSlots = 0;
 
             docenten.forEach(doc => {
-                const hours = getTotalHours(doc.id);
-                const slots = countSlots(doc.id);
+                const inzetten = allInzetten[doc.id] || {};
+                const hours = getTotalHours(doc.id, inzetten);
+                const slots = countSlots(doc.id, inzetten);
                 if (hours > 0) {
                     totalDocenten++;
                     totalUren += hours;
@@ -242,22 +341,22 @@
             `;
         }
 
-        function updateTable() {
+        function updateTable(allInzetten) {
             const tbody = document.getElementById('docentBody');
             tbody.innerHTML = '';
 
             docenten.forEach(doc => {
-                const slots = countSlots(doc.id);
-                const uren = getTotalHours(doc.id);
+                const inzetten = allInzetten[doc.id] || {};
+                const slots = countSlots(doc.id, inzetten);
+                const uren = getTotalHours(doc.id, inzetten);
                 const maxUren = getMaxUren(doc.id);
                 const percentage = maxUren > 0 ? Math.round((uren / maxUren) * 100) : 0;
 
                 let statusBadge = '';
-                
                 if (uren === 0) {
                     statusBadge = '<span class="badge badge-empty">Niet ingezet</span>';
                 } else if (uren < maxUren) {
-                    statusBadge = '<span class="badge badge-partial">Deels (nog ' + (maxUren - uren) + 'u)</span>';
+                    statusBadge = '<span class="badge badge-partial">Deels (' + (maxUren - uren) + 'u nog)</span>';
                 } else {
                     statusBadge = '<span class="badge badge-complete">Compleet ✓</span>';
                 }
@@ -280,28 +379,53 @@
         }
 
         function exportData() {
-            let csv = 'Docent,Slots,Uren,Max Uren,Percentage\n';
+            db.ref('inzetten').once('value').then(snapshot => {
+                const allInzetten = snapshot.val() || {};
+                let csv = 'Docent,Slots,Uren,Max Uren,Percentage\n';
 
-            docenten.forEach(doc => {
-                const slots = countSlots(doc.id);
-                const uren = getTotalHours(doc.id);
-                const maxUren = getMaxUren(doc.id);
-                const percentage = maxUren > 0 ? Math.round((uren / maxUren) * 100) : 0;
-                
-                csv += `${doc.naam},${slots},${uren},${maxUren},${percentage}%\n`;
+                docenten.forEach(doc => {
+                    const inzetten = allInzetten[doc.id] || {};
+                    const slots = countSlots(doc.id, inzetten);
+                    const uren = getTotalHours(doc.id, inzetten);
+                    const maxUren = getMaxUren(doc.id);
+                    const percentage = maxUren > 0 ? Math.round((uren / maxUren) * 100) : 0;
+                    
+                    csv += `${doc.naam},${slots},${uren},${maxUren},${percentage}%\n`;
+                });
+
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'intaken_beschikbaarheid.csv';
+                a.click();
             });
-
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'intaken_beschikbaarheid.csv';
-            a.click();
         }
 
-        // Update dashboard elke 2 seconden
-        setInterval(updateDashboard, 2000);
-        updateDashboard();
+        function startDashboard() {
+            // Check elke 2 seconden
+            setInterval(() => {
+                db.ref('inzetten').once('value').then(snapshot => {
+                    const allInzetten = snapshot.val() || {};
+                    updateStats(allInzetten);
+                    updateTable(allInzetten);
+                });
+            }, 2000);
+
+            // Eerste keer meteen
+            db.ref('inzetten').once('value').then(snapshot => {
+                const allInzetten = snapshot.val() || {};
+                updateStats(allInzetten);
+                updateTable(allInzetten);
+            });
+        }
+
+        // Check login on load
+        window.onload = function() {
+            if (sessionStorage.getItem('managerLoggedIn') === 'true') {
+                showDashboard();
+            }
+        };
     </script>
 </body>
 </html>
