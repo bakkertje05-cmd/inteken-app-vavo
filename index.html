@@ -31,19 +31,19 @@
             width: 100%; padding: 12px; border: 2px solid #ddd;
             border-radius: 6px; font-size: 14px; margin-bottom: 20px; 
         }
-        .weeks { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
+        .weeks { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-top: 20px; }
         .week { background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #667eea; }
-        .week h3 { color: #1F4E78; margin-bottom: 10px; font-size: 14px; }
-        .day { background: white; padding: 12px; border-radius: 6px; margin-bottom: 10px; border: 1px solid #ddd; }
-        .day-name { font-weight: bold; color: #1F4E78; font-size: 12px; }
-        .day-date { font-size: 11px; color: #666; }
+        .week h3 { color: #1F4E78; margin-bottom: 15px; font-size: 16px; }
+        .day { background: white; padding: 12px; border-radius: 6px; margin-bottom: 12px; border: 1px solid #ddd; }
+        .day-name { font-weight: bold; color: #1F4E78; font-size: 13px; }
+        .day-date { font-size: 11px; color: #666; margin-bottom: 8px; }
         .btn { 
-            width: 100%; padding: 8px; margin-top: 8px;
+            width: 100%; padding: 8px; margin-top: 6px;
             background: #667eea; color: white; border: none;
-            border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; transition: all 0.3s;
+            border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; transition: all 0.3s;
         }
         .btn:hover:not(:disabled) { background: #764ba2; }
-        .btn.selected { background: #70AD47; }
+        .btn.selected { background: #70AD47 !important; }
         .btn:disabled { background: #ccc; cursor: not-allowed; opacity: 0.6; }
         .stats { 
             display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;
@@ -58,7 +58,6 @@
             margin-top: 15px; font-size: 14px;
         }
         .confirm-btn:hover { background: #5a8c39; }
-        .special { background: #FFF3CD; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -68,16 +67,13 @@
             <p>Zet jezelf in voor de gespreksrondes • Max 40-60 uur • Bevestig je inzet</p>
             <div class="instruction-box">
                 <strong>📋 Instructie:</strong><br>
-                1. Selecteer je naam in het dropdown menu<br>
-                2. Plan dagdelen in tot je aan de 40 uur bent<br>
-                3. Let op: Plan tenminste een aantal dagdelen in de <strong>laatste twee weken</strong><br>
-                4. Bevestig je inzet wanneer je klaar bent
+                1. Selecteer je naam • 2. Klik dagdelen aan • 3. Bevestig wanneer klaar
             </div>
         </div>
         
         <div class="content">
             <h2 style="color: #1F4E78; margin-bottom: 15px;">👤 Selecteer jezelf:</h2>
-            <select id="docentSelect" onchange="loadDocent()">
+            <select id="docentSelect" onchange="selectDocent()">
                 <option value="">-- Kies je naam --</option>
                 <option value="D01">Hendrikje Balkenende</option>
                 <option value="D02">Rosanne Bartels</option>
@@ -106,11 +102,7 @@
                 <option value="D25">Annie van der Velden</option>
             </select>
 
-            <div id="content" style="display: none;">
-                <div id="specialNote" class="special" style="display: none;">
-                    ⭐ Jij bent een senior docent met 60 uur beschikbaarheid (ipv 40 uur)
-                </div>
-
+            <div id="appContent" style="display: none;">
                 <div class="stats">
                     <div class="stat">
                         <div class="stat-value" id="totalDays">0</div>
@@ -118,61 +110,43 @@
                     </div>
                     <div class="stat">
                         <div class="stat-value" id="totalHours">0</div>
-                        <div class="stat-label" id="hourLabel">Uren (max 40)</div>
+                        <div class="stat-label" id="maxLabel">Uren (max 40)</div>
                     </div>
                     <div class="stat">
-                        <div class="stat-value" id="syncStatus">✓</div>
-                        <div class="stat-label">Sync Status</div>
+                        <div class="stat-value" id="pct">0%</div>
+                        <div class="stat-label">Voortgang</div>
                     </div>
                 </div>
 
-                <h2 style="color: #1F4E78; margin-top: 30px; margin-bottom: 15px;">📅 Kies je dagdelen:</h2>
+                <h2 style="color: #1F4E78; margin-top: 30px; margin-bottom: 15px;">📅 Weken Juni-Juli 2026</h2>
                 <div class="weeks" id="weeks"></div>
 
-                <button id="confirmBtn" class="confirm-btn" onclick="confirmInzet()" style="display: none;">
+                <button id="confirmBtn" class="confirm-btn" onclick="confirmInzet()" style="display: none; margin-top: 20px;">
                     ✓ Bevestig mijn inzet
                 </button>
 
-                <button onclick="resetInzet()" style="width: 100%; padding: 12px; background: #FF6B6B; color: white; border: none; border-radius: 6px; font-weight: bold; margin-top: 20px; cursor: pointer;">🗑️ Wis alles</button>
+                <button onclick="resetAll()" style="width: 100%; padding: 12px; background: #FF6B6B; color: white; border: none; border-radius: 6px; font-weight: bold; margin-top: 20px; cursor: pointer;">🗑️ Wis alles</button>
             </div>
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
-
     <script>
-        // Firebase Config
-        const firebaseConfig = {
-            apiKey: "AIzaSyBSEJIdGx0jhySaF73vWxEjvFezOUr0P10",
-            authDomain: "intake-app-2026.firebaseapp.com",
-            databaseURL: "https://intake-app-2026-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "intake-app-2026",
-            storageBucket: "intake-app-2026.firebasestorage.app",
-            messagingSenderId: "387454682734",
-            appId: "1:387454682734:web:bb28e5136ab1891bc7887f"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
         const weeks = [
-            { week: 1, start: new Date(2026, 5, 10) },
-            { week: 2, start: new Date(2026, 5, 17) },
-            { week: 3, start: new Date(2026, 5, 24) },
-            { week: 4, start: new Date(2026, 6, 1) },
-            { week: 5, start: new Date(2026, 6, 8) },
-            { week: 6, start: new Date(2026, 6, 15) },
-            { week: 7, start: new Date(2026, 6, 22) }
+            { week: 1, start: new Date(2026, 5, 12) },   // ALLEEN VRIJDAG 12 juni 2026
+            { week: 2, start: new Date(2026, 5, 15) },   // 15 juni 2026
+            { week: 3, start: new Date(2026, 5, 22) },   // 22 juni 2026
+            { week: 4, start: new Date(2026, 5, 29) },   // 29 juni 2026
+            { week: 5, start: new Date(2026, 6, 6) },    // 6 juli 2026
+            { week: 6, start: new Date(2026, 6, 13) },   // 13 juli 2026
+            { week: 7, start: new Date(2026, 6, 20) }    // 20 juli 2026
         ];
 
         const days = ['Ma', 'Di', 'Wo', 'Do', 'Vr'];
         const months = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul'];
-        const max60Docenten = ['D04', 'D05', 'D09'];
+        const max60 = ['D04', 'D05', 'D09'];
 
-        function getMaxUren(docentId) {
-            return max60Docenten.includes(docentId) ? 60 : 40;
+        function getMax(id) {
+            return max60.includes(id) ? 60 : 40;
         }
 
         function formatDate(d) {
@@ -189,58 +163,36 @@
             return dates;
         }
 
-        function loadDocent() {
-            let id = document.getElementById('docentSelect').value;
+        function selectDocent() {
+            const id = document.getElementById('docentSelect').value;
             if (!id) {
-                document.getElementById('content').style.display = 'none';
+                document.getElementById('appContent').style.display = 'none';
                 return;
             }
-            document.getElementById('content').style.display = 'block';
+            document.getElementById('appContent').style.display = 'block';
+            document.getElementById('maxLabel').textContent = `Uren (max ${getMax(id)})`;
             
-            let maxUren = getMaxUren(id);
-            document.getElementById('hourLabel').textContent = `Uren (max ${maxUren})`;
-            
-            if (max60Docenten.includes(id)) {
-                document.getElementById('specialNote').style.display = 'block';
-            } else {
-                document.getElementById('specialNote').style.display = 'none';
-            }
-
-            // Laad data van Firebase
-            db.ref('inzetten/' + id).once('value').then(function(snapshot) {
-                const docentInzetten = snapshot.val() || {};
-                renderWeeks(id, docentInzetten);
-                updateStats(id, docentInzetten);
-            });
+            renderWeeks(id);
+            updateStats(id);
         }
 
-        function renderWeeks(docentId, docentInzetten) {
+        function renderWeeks(id) {
             let html = '';
-            let maxUren = getMaxUren(docentId);
             weeks.forEach(w => {
                 let dates = getDates(w.start);
-                html += `<div class="week"><h3>Week ${w.week}</h3>`;
+                let endDate = new Date(dates[4]);
+                let dateRange = `${formatDate(dates[0])}-${formatDate(endDate)}`;
+                html += `<div class="week"><h3>Week ${w.week} • ${dateRange}</h3>`;
                 dates.forEach((date, i) => {
-                    let ochtendKey = `W${w.week}-D${i}-O`;
-                    let middagKey = `W${w.week}-D${i}-M`;
-                    let isOchtendSelected = docentInzetten[ochtendKey];
-                    let isMiddagSelected = docentInzetten[middagKey];
-                    
-                    let totalDagdelen = Object.keys(docentInzetten).length;
-                    let totalHours = totalDagdelen * 4;
-                    let canAddMore = totalHours < maxUren;
-                    
+                    const key = `${id}-W${w.week}-D${i}`;
+                    const checked = localStorage.getItem(key) ? 'selected' : '';
+                    const disabled = !canAdd(id) && !localStorage.getItem(key) ? 'disabled' : '';
                     html += `
                         <div class="day">
                             <div class="day-name">${days[i]}</div>
                             <div class="day-date">${formatDate(date)}</div>
-                            <button class="btn ${isOchtendSelected ? 'selected' : ''} ${!canAddMore && !isOchtendSelected ? 'disabled' : ''}" 
-                                onclick="toggleInzet('${docentId}', '${ochtendKey}')">
-                                O ${isOchtendSelected ? '✓' : ''}
-                            </button>
-                            <button class="btn ${isMiddagSelected ? 'selected' : ''} ${!canAddMore && !isMiddagSelected ? 'disabled' : ''}" 
-                                onclick="toggleInzet('${docentId}', '${middagKey}')">
-                                M ${isMiddagSelected ? '✓' : ''}
+                            <button class="btn ${checked} ${disabled}" onclick="toggle('${key}', '${id}')">
+                                ${localStorage.getItem(key) ? '✓ Ingezet' : 'Zet in'}
                             </button>
                         </div>
                     `;
@@ -250,57 +202,67 @@
             document.getElementById('weeks').innerHTML = html;
         }
 
-        function toggleInzet(docentId, key) {
-            db.ref('inzetten/' + docentId).once('value').then(function(snapshot) {
-                let docentInzetten = snapshot.val() || {};
-                let maxUren = getMaxUren(docentId);
-                let totalHours = Object.keys(docentInzetten).length * 4;
-
-                if (docentInzetten[key]) {
-                    delete docentInzetten[key];
-                } else {
-                    if (totalHours >= maxUren) {
-                        alert(`❌ Je hebt het maximum van ${maxUren} uren bereikt!`);
-                        return;
-                    }
-                    docentInzetten[key] = true;
+        function toggle(key, id) {
+            const max = getMax(id);
+            const count = countInzetten(id);
+            
+            if (!localStorage.getItem(key)) {
+                if (count * 4 >= max) {
+                    alert(`❌ Je hebt max ${max} uren bereikt!`);
+                    return;
                 }
-
-                db.ref('inzetten/' + docentId).set(docentInzetten).then(() => {
-                    loadDocent(); // Refresh na opslaan
-                });
-            });
+                localStorage.setItem(key, '1');
+            } else {
+                localStorage.removeItem(key);
+            }
+            
+            renderWeeks(id);
+            updateStats(id);
         }
 
-        function updateStats(docentId, docentInzetten) {
-            let count = Object.keys(docentInzetten).length;
-            let hours = count * 4;
+        function canAdd(id) {
+            const max = getMax(id);
+            return (countInzetten(id) * 4) < max;
+        }
 
+        function countInzetten(id) {
+            let count = 0;
+            for (let i = 1; i <= 7; i++) {
+                for (let j = 0; j < 5; j++) {
+                    if (localStorage.getItem(`${id}-W${i}-D${j}`)) {
+                        count++;
+                    }
+                }
+            }
+            return count;
+        }
+
+        function updateStats(id) {
+            const count = countInzetten(id);
+            const hours = count * 4;
+            const max = getMax(id);
+            const pct = Math.round((hours / max) * 100);
+            
             document.getElementById('totalDays').textContent = count;
             document.getElementById('totalHours').textContent = hours;
+            document.getElementById('pct').textContent = pct + '%';
             
-            let confirmBtn = document.getElementById('confirmBtn');
-            if (count > 0) {
-                confirmBtn.style.display = 'block';
-            } else {
-                confirmBtn.style.display = 'none';
-            }
+            document.getElementById('confirmBtn').style.display = count > 0 ? 'block' : 'none';
         }
 
         function confirmInzet() {
-            let id = document.getElementById('docentSelect').value;
-            db.ref('status/' + id).set({
-                confirmed: true,
-                changesLeft: 2
-            });
             alert('✓ Je inzet is bevestigd!');
         }
 
-        function resetInzet() {
-            if (confirm('Wil je ALLE je inzetten verwijderen?')) {
-                let id = document.getElementById('docentSelect').value;
-                db.ref('inzetten/' + id).set({});
-                loadDocent();
+        function resetAll() {
+            if (confirm('ALLE inzetten wissen?')) {
+                const id = document.getElementById('docentSelect').value;
+                for (let i = 1; i <= 7; i++) {
+                    for (let j = 0; j < 5; j++) {
+                        localStorage.removeItem(`${id}-W${i}-D${j}`);
+                    }
+                }
+                selectDocent();
             }
         }
     </script>
