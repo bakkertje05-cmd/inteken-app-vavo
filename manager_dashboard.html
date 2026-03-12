@@ -1,9 +1,12 @@
+
 <!DOCTYPE html>
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎯 Manager Dashboard - Beschikbaarheid & Productie</title>
+    <title>🎯 Manager Dashboard - Beveiligd</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -13,6 +16,102 @@
             min-height: 100vh;
         }
         .container { max-width: 1400px; margin: 0 auto; }
+        
+        /* LOGIN SCHERM */
+        .login-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 1000;
+        }
+        
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        .login-card h1 {
+            color: #1F4E78;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .login-card p {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .login-card .lock-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        
+        .login-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+        }
+        
+        .login-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 8px rgba(102, 126, 234, 0.3);
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .login-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .error-message {
+            display: none;
+            background: #FFE5E5;
+            color: #9C0006;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 4px solid #FF6B6B;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .error-message.show {
+            display: block;
+        }
+        
+        /* DASHBOARD SCREEN */
+        .dashboard-screen {
+            display: none;
+        }
+        
         .header {
             background: white;
             padding: 30px;
@@ -21,8 +120,27 @@
             margin-bottom: 30px;
             text-align: center;
         }
+        
         .header h1 { color: #1F4E78; font-size: 28px; margin-bottom: 10px; }
         .header p { color: #666; font-size: 14px; }
+        
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: #FF6B6B;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .logout-btn:hover {
+            background: #FF5252;
+        }
+        
         .card {
             background: white;
             padding: 25px;
@@ -30,6 +148,7 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             margin-bottom: 25px;
         }
+        
         .card h2 { 
             color: #1F4E78; 
             margin-bottom: 20px; 
@@ -37,12 +156,14 @@
             border-bottom: 2px solid #667eea; 
             padding-bottom: 10px; 
         }
+        
         .stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 15px;
             margin-bottom: 25px;
         }
+        
         .stat-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -50,8 +171,10 @@
             border-radius: 8px;
             text-align: center;
         }
+        
         .stat-value { font-size: 28px; font-weight: bold; margin: 10px 0; }
         .stat-label { font-size: 12px; opacity: 0.9; }
+        
         table { width: 100%; border-collapse: collapse; }
         th {
             background: #203864;
@@ -62,6 +185,7 @@
         }
         td { padding: 12px; border-bottom: 1px solid #e0e0e0; }
         tr:hover { background: #f8f9fa; }
+        
         .badge {
             display: inline-block;
             padding: 4px 12px;
@@ -69,10 +193,12 @@
             font-size: 12px;
             font-weight: bold;
         }
+        
         .badge-empty { background: #ccc; color: #666; }
         .badge-partial { background: #FFF3CD; color: #333; }
         .badge-complete { background: #C6EFCE; color: #070707; }
         .badge-confirmed { background: #70AD47; color: white; }
+        
         .progress-bar {
             width: 100%;
             height: 20px;
@@ -81,26 +207,13 @@
             overflow: hidden;
             margin: 5px 0;
         }
+        
         .progress-fill {
             height: 100%;
             background: linear-gradient(90deg, #667eea, #764ba2);
             transition: width 0.3s;
         }
-        .filter-btn {
-            padding: 10px 15px;
-            border: 2px solid #ddd;
-            background: white;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-right: 10px;
-            transition: all 0.3s;
-        }
-        .filter-btn.active {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
+        
         .info-box {
             background: #E2EFDA;
             padding: 15px;
@@ -110,98 +223,143 @@
             color: #333;
             font-size: 13px;
         }
-        .production-section {
-            background: #FFF3CD;
-            padding: 15px;
-            border-left: 4px solid #FFC000;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            color: #333;
-            font-size: 13px;
+        
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            background: #667eea;
+            color: white;
+            transition: transform 0.2s;
+        }
+        
+        button:hover { transform: translateY(-2px); }
+        
+        .sync-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #70AD47;
+            color: white;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🎯 Manager Dashboard - INTAKEWEKEN</h1>
-            <p>Live monitoring beschikbaarheid docenten | 12 Juni - 18 Juli 2026</p>
-        </div>
-
-        <div class="card">
-            <h2>📊 Overzicht</h2>
-            <div class="stats" id="statsGrid"></div>
-            <div class="info-box">
-                ✓ = Bevestigd | 📝 = In afwachting | 🔒 = Vergrendeld (manager-only wijzigen)
-            </div>
-        </div>
-
-        <div class="card">
-            <h2>👥 Beschikbaarheid Docenten</h2>
-            <div style="margin-bottom: 15px;">
-                <button class="filter-btn active" onclick="filterStatus('all')">Iedereen (25)</button>
-                <button class="filter-btn" onclick="filterStatus('empty')">Niet ingezet</button>
-                <button class="filter-btn" onclick="filterStatus('partial')">Deels ingezet</button>
-                <button class="filter-btn" onclick="filterStatus('complete')">Compleet 40+ uur</button>
-                <button class="filter-btn" onclick="filterStatus('confirmed')">Bevestigd</button>
-            </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Docent</th>
-                        <th>Dagdelen</th>
-                        <th>Uren</th>
-                        <th>Voortgang</th>
-                        <th>Status</th>
-                        <th>Wijzigingen Over</th>
-                        <th>Acties</th>
-                    </tr>
-                </thead>
-                <tbody id="docentBody"></tbody>
-            </table>
-        </div>
-
-        <div class="card">
-            <h2>📈 Productie Voorbereiding</h2>
-            <div class="production-section">
-                <strong>💡 Dit gedeelte wordt in volgende fase ingevuld met:</strong><br>
-                • Geplande gesprekken per week<br>
-                • Actuele opkomst (hoeveel gesprekken daadwerkelijk hebben plaatsgevonden)<br>
-                • No-shows tracking<br>
-                • Voortgang per team (HAVO/MAVO/VWO)
-            </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Week</th>
-                        <th>Geplande Uren</th>
-                        <th>Geplande Gesprekken</th>
-                        <th>Ingezet Door Docenten</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody id="productionBody"></tbody>
-            </table>
-        </div>
-
-        <div class="card">
-            <h2>⚙️ Manager Functies</h2>
-            <div class="info-box">
-                <strong>Beschikbare acties:</strong><br>
-                • Wijzigingen resetten per docent (↻ knop)<br>
-                • Alle data exporteren naar CSV (voor analyse)<br>
-                • Status per docent zien (bevestigd/in afwachting/vergrendeld)
-            </div>
-            <button onclick="resetAllChanges()" style="padding: 12px 20px; background: #FF6B6B; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-right: 10px;">
-                🔄 Alle docenten reset geven (2 wijzigingen)
+    <!-- LOGIN SCHERM -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-card">
+            <div class="lock-icon">🔐</div>
+            <h1>Manager Dashboard</h1>
+            <p>Voer je wachtwoord in</p>
+            
+            <div class="error-message" id="errorMessage"></div>
+            
+            <input 
+                type="password" 
+                class="login-input" 
+                id="passwordInput" 
+                placeholder="Wachtwoord"
+                onkeypress="if(event.key === 'Enter') login()"
+            >
+            
+            <button class="login-btn" onclick="login()">
+                Inloggen
             </button>
-            <button onclick="exportData()" style="padding: 12px 20px; background: #70AD47; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">
-                📥 Export naar CSV
-            </button>
+            
+            <p style="margin-top: 20px; color: #999; font-size: 12px;">
+                ✓ Beveiligd dashboard<br>
+                Alleen jij hebt toegang
+            </p>
+        </div>
+    </div>
+
+    <!-- DASHBOARD SCHERM -->
+    <div class="dashboard-screen" id="dashboardScreen">
+        <button class="logout-btn" onclick="logout()">Uitloggen 🚪</button>
+        
+        <div class="container">
+            <div class="header">
+                <h1>🎯 Manager Dashboard - INTAKEWEKEN</h1>
+                <p>Live monitoring beschikbaarheid docenten | Firebase Real-Time Sync</p>
+                <span class="sync-badge">🔴 LIVE UPDATES - Ziet alle wijzigingen direct!</span>
+            </div>
+
+            <div class="card">
+                <h2>📊 Overzicht</h2>
+                <div class="stats" id="statsGrid"></div>
+                <div class="info-box">
+                    ✓ = Bevestigd | 📝 = In afwachting | 🔒 = Vergrendeld (manager-only wijzigen)
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>👥 Beschikbaarheid Docenten</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Docent</th>
+                            <th>Dagdelen</th>
+                            <th>Uren</th>
+                            <th>Voortgang</th>
+                            <th>Status</th>
+                            <th>Wijzigingen Over</th>
+                            <th>Acties</th>
+                        </tr>
+                    </thead>
+                    <tbody id="docentBody"></tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h2>⚙️ Manager Functies</h2>
+                <div class="info-box">
+                    <strong>Beschikbare acties:</strong><br>
+                    • Wijzigingen resetten per docent (↻ knop)<br>
+                    • Alle data exporteren naar CSV<br>
+                    • Real-time monitoring van alle inzetten
+                </div>
+                <button onclick="resetAllChanges()" style="margin-right: 10px;">
+                    🔄 Alle docenten reset geven (2 wijzigingen)
+                </button>
+                <button onclick="exportData()" style="background: #70AD47;">
+                    📥 Export naar CSV
+                </button>
+            </div>
         </div>
     </div>
 
     <script>
+        // Firebase config
+        const firebaseConfig = {
+            databaseURL: "https://intake-app-2026-default-rtdb.europe-west1.firebaseio.com"
+        };
+
+        // Wacht tot Firebase beschikbaar is
+        function initFirebase() {
+            if (typeof firebase !== 'undefined') {
+                try {
+                    firebase.initializeApp(firebaseConfig);
+                    window.database = firebase.database();
+                    console.log('✓ Firebase initialized');
+                } catch (e) {
+                    console.log('Firebase already initialized');
+                    window.database = firebase.database();
+                }
+            } else {
+                setTimeout(initFirebase, 100);
+            }
+        }
+        
+        initFirebase();
+
+        // BEVEILIGD WACHTWOORD
+        const CORRECT_PASSWORD = "Irene0503@@";
+
         const docenten = [
             { id: 'D01', naam: 'Hendrikje Balkenende' },
             { id: 'D02', naam: 'Rosanne Bartels' },
@@ -230,50 +388,73 @@
             { id: 'D25', naam: 'Annie van der Velden' }
         ];
 
-        const weekData = [
-            { week: 1, maxUren: 10 },
-            { week: 2, maxUren: 14 },
-            { week: 3, maxUren: 21 },
-            { week: 4, maxUren: 28 },
-            { week: 5, maxUren: 36 },
-            { week: 6, maxUren: 55 },
-            { week: 7, maxUren: 66 }
-        ];
+        function login() {
+            const password = document.getElementById('passwordInput').value;
+            const errorMsg = document.getElementById('errorMessage');
 
-        let currentFilter = 'all';
+            if (password === CORRECT_PASSWORD) {
+                // Correct wachtwoord
+                localStorage.setItem('dashboardLoggedIn', 'true');
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('dashboardScreen').style.display = 'block';
+                updateDashboard();
+                setInterval(updateDashboard, 2000);
+            } else {
+                // Fout wachtwoord
+                errorMsg.textContent = '❌ Wachtwoord incorrect. Probeer opnieuw.';
+                errorMsg.classList.add('show');
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('passwordInput').focus();
+            }
+        }
 
-        function getMaxUren(docentId) {
-            const doc = docenten.find(d => d.id === docentId);
-            return doc && doc.max ? doc.max : 40;
+        function logout() {
+            if (confirm('Wil je uitloggen?')) {
+                localStorage.removeItem('dashboardLoggedIn');
+                document.getElementById('loginScreen').style.display = 'flex';
+                document.getElementById('dashboardScreen').style.display = 'none';
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('errorMessage').classList.remove('show');
+            }
+        }
+
+        function checkLogin() {
+            if (localStorage.getItem('dashboardLoggedIn') === 'true') {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('dashboardScreen').style.display = 'block';
+                updateDashboard();
+                setInterval(updateDashboard, 2000);
+            }
+        }
+
+        function getMaxUren(doc) {
+            return doc.max ? doc.max : 40;
         }
 
         function updateDashboard() {
-            const allInzetten = JSON.parse(localStorage.getItem('allInzetten') || '{}');
-            
-            // Update statistieken
-            updateStats(allInzetten);
-            
-            // Update tabel
-            updateTable(allInzetten);
-            
-            // Update productie
-            updateProduction(allInzetten);
+            window.database.ref('users').once('value', (snapshot) => {
+                const allUsers = snapshot.val() || {};
+                updateStats(allUsers);
+                updateTable(allUsers);
+            });
         }
 
-        function updateStats(allInzetten) {
-            const ids = Object.keys(allInzetten);
+        function updateStats(allUsers) {
             let totalDagdelen = 0;
             let bevestigdCount = 0;
             let inzetCount = 0;
 
-            ids.forEach(docentId => {
-                const inzetten = allInzetten[docentId];
-                if (inzetten && Object.keys(inzetten).length > 0) {
-                    inzetCount++;
-                    totalDagdelen += Object.keys(inzetten).length;
-                    
-                    const status = JSON.parse(localStorage.getItem(`status_${docentId}`) || '{"confirmed": false}');
-                    if (status.confirmed) bevestigdCount++;
+            Object.keys(allUsers).forEach(docentId => {
+                const userData = allUsers[docentId];
+                if (userData && userData.inzetten) {
+                    const dagdelen = Object.keys(userData.inzetten).length;
+                    if (dagdelen > 0) {
+                        inzetCount++;
+                        totalDagdelen += dagdelen;
+                        if (userData.status && userData.status.confirmed) {
+                            bevestigdCount++;
+                        }
+                    }
                 }
             });
 
@@ -298,40 +479,35 @@
             `;
         }
 
-        function updateTable(allInzetten) {
+        function updateTable(allUsers) {
             const tbody = document.getElementById('docentBody');
             tbody.innerHTML = '';
 
             docenten.forEach(doc => {
-                const inzetten = allInzetten[doc.id] || {};
+                const userData = allUsers[doc.id] || {};
+                const inzetten = userData.inzetten || {};
                 const dagdelen = Object.keys(inzetten).length;
-                const maxUren = getMaxUren(doc.id);
+                const maxUren = getMaxUren(doc);
                 const uren = dagdelen * 4;
                 const percentage = maxUren > 0 ? Math.round((uren / maxUren) * 100) : 0;
-
-                const status = JSON.parse(localStorage.getItem(`status_${doc.id}`) || '{"confirmed": false, "changesLeft": 2}');
+                const status = userData.status || { confirmed: false, changesLeft: 2 };
 
                 let statusBadge = '';
-                let filterClass = '';
                 
                 if (dagdelen === 0) {
                     statusBadge = '<span class="badge badge-empty">Niet ingezet</span>';
-                    filterClass = 'empty';
                 } else if (uren < maxUren) {
                     statusBadge = '<span class="badge badge-partial">Deels</span>';
-                    filterClass = 'partial';
                 } else {
                     statusBadge = '<span class="badge badge-complete">Compleet ✓</span>';
-                    filterClass = 'complete';
                 }
 
                 if (status.confirmed) {
-                    statusBadge += ' <span class="badge badge-confirmed">Bevestigd</span>';
-                    if (!filterClass.includes('confirmed')) filterClass += ' confirmed';
-                }
-
-                if (currentFilter !== 'all' && !filterClass.includes(currentFilter)) {
-                    return;
+                    if (status.changesLeft === 0) {
+                        statusBadge += ' <span class="badge" style="background: #FFB3B3; color: #9C0006;">🔒 Vergrendeld</span>';
+                    } else {
+                        statusBadge += ' <span class="badge badge-confirmed">✓ Bevestigd</span>';
+                    }
                 }
 
                 const row = document.createElement('tr');
@@ -347,65 +523,18 @@
                     </td>
                     <td>${statusBadge}</td>
                     <td>${status.changesLeft}</td>
-                    <td><button onclick="resetDocent('${doc.id}')" style="padding: 6px 12px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">↻</button></td>
+                    <td><button onclick="resetDocent('${doc.id}')" style="padding: 6px 12px; font-size: 12px;">↻</button></td>
                 `;
                 tbody.appendChild(row);
             });
-        }
-
-        function updateProduction(allInzetten) {
-            const tbody = document.getElementById('productionBody');
-            tbody.innerHTML = '';
-
-            weekData.forEach(w => {
-                let weekDagdelen = 0;
-                Object.values(allInzetten).forEach(inzetten => {
-                    if (inzetten) {
-                        for (let key in inzetten) {
-                            if (key.startsWith(`W${w.week}-`)) weekDagdelen++;
-                        }
-                    }
-                });
-
-                const weekUren = weekDagdelen * 4;
-                const gesprekken = Math.round(weekDagdelen * 12); // 12 gesprekken per dagdeel
-
-                let status = '';
-                if (weekUren === 0) {
-                    status = '<span class="badge badge-empty">Niet gepland</span>';
-                } else if (weekUren < w.maxUren) {
-                    status = '<span class="badge badge-partial">Ondergevuld</span>';
-                } else {
-                    status = '<span class="badge badge-complete">Volledig ingezet</span>';
-                }
-
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td><strong>Week ${w.week}</strong></td>
-                    <td>${w.maxUren}u</td>
-                    <td>${Math.round(w.maxUren / 4 * 12)} gesprekken</td>
-                    <td>${weekUren}u (${gesprekken} gesprekken)</td>
-                    <td>${status}</td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        function filterStatus(status) {
-            currentFilter = status;
-            const buttons = document.querySelectorAll('.filter-btn');
-            buttons.forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            const allInzetten = JSON.parse(localStorage.getItem('allInzetten') || '{}');
-            updateTable(allInzetten);
         }
 
         function resetDocent(docentId) {
             if (confirm('Wil je deze docent 2 wijzigingen geven?')) {
-                const status = { confirmed: false, changesLeft: 2 };
-                localStorage.setItem(`status_${docentId}`, JSON.stringify(status));
-                updateDashboard();
+                window.database.ref(`users/${docentId}/status`).update({
+                    changesLeft: 2,
+                    confirmed: false
+                });
                 alert('✓ Wijzigingen gereset!');
             }
         }
@@ -413,39 +542,42 @@
         function resetAllChanges() {
             if (confirm('Wil je ALLE docenten 2 wijzigingen geven?')) {
                 docenten.forEach(doc => {
-                    const status = { confirmed: false, changesLeft: 2 };
-                    localStorage.setItem(`status_${doc.id}`, JSON.stringify(status));
+                    window.database.ref(`users/${doc.id}/status`).update({
+                        changesLeft: 2,
+                        confirmed: false
+                    });
                 });
-                updateDashboard();
                 alert('✓ Alle wijzigingen gereset!');
             }
         }
 
         function exportData() {
-            const allInzetten = JSON.parse(localStorage.getItem('allInzetten') || '{}');
-            let csv = 'Docent,Dagdelen,Uren,Bevestigd,Wijzigingen Over\n';
+            window.database.ref('users').once('value', (snapshot) => {
+                const allUsers = snapshot.val() || {};
+                let csv = 'Docent,Dagdelen,Uren,Bevestigd,Wijzigingen Over\n';
 
-            docenten.forEach(doc => {
-                const inzetten = allInzetten[doc.id] || {};
-                const dagdelen = Object.keys(inzetten).length;
-                const uren = dagdelen * 4;
-                const status = JSON.parse(localStorage.getItem(`status_${doc.id}`) || '{"confirmed": false, "changesLeft": 2}');
-                const bevestigd = status.confirmed ? 'Ja' : 'Nee';
-                
-                csv += `${doc.naam},${dagdelen},${uren},${bevestigd},${status.changesLeft}\n`;
+                docenten.forEach(doc => {
+                    const userData = allUsers[doc.id] || {};
+                    const inzetten = userData.inzetten || {};
+                    const dagdelen = Object.keys(inzetten).length;
+                    const uren = dagdelen * 4;
+                    const status = userData.status || { confirmed: false, changesLeft: 2 };
+                    const bevestigd = status.confirmed ? 'Ja' : 'Nee';
+                    
+                    csv += `${doc.naam},${dagdelen},${uren},${bevestigd},${status.changesLeft}\n`;
+                });
+
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'intaken_beschikbaarheid.csv';
+                a.click();
             });
-
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'intaken_beschikbaarheid.csv';
-            a.click();
         }
 
-        // Update elke 2 seconden
-        setInterval(updateDashboard, 2000);
-        updateDashboard();
+        // Check login status on page load
+        checkLogin();
     </script>
 </body>
 </html>
