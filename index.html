@@ -5,8 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📅 INTAKEWEKEN 12 JUNI-18 JULI 2026</title>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -61,7 +59,6 @@
         }
         .confirm-btn:hover { background: #5a8c39; }
         .time-slot { font-size: 10px; color: #999; margin-top: 2px; }
-        .loading { text-align: center; color: #999; padding: 20px; }
     </style>
 </head>
 <body>
@@ -135,6 +132,10 @@
         </div>
     </div>
 
+    <!-- Firebase Scripts MOETEN HIER STAAN! -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
+
     <script>
         // Firebase Config
         const firebaseConfig = {
@@ -147,6 +148,7 @@
             appId: "1:387454682734:web:bb28e5136ab1891bc7887f"
         };
 
+        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
