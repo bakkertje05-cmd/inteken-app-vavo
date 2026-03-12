@@ -15,7 +15,6 @@
         }
         .container { max-width: 1400px; margin: 0 auto; }
         
-        /* LOGIN SCREEN */
         .login-screen {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -57,7 +56,6 @@
         .login-btn:hover { background: #764ba2; }
         .error-msg { color: #FF6B6B; margin-bottom: 20px; font-weight: bold; }
         
-        /* DASHBOARD */
         .header {
             background: white;
             padding: 30px;
@@ -154,7 +152,6 @@
     </style>
 </head>
 <body>
-    <!-- LOGIN SCREEN -->
     <div id="loginScreen" class="login-screen">
         <div class="login-box">
             <h1>🔐 Manager Dashboard</h1>
@@ -165,7 +162,6 @@
         </div>
     </div>
 
-    <!-- DASHBOARD -->
     <div id="dashboard" style="display: none;">
         <button class="logout-btn" onclick="logout()">Uitloggen</button>
         
@@ -207,27 +203,44 @@
         </div>
     </div>
 
-    <!-- Firebase Scripts MOETEN HIER STAAN! -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
 
     <script>
-        // Firebase Config
-        const firebaseConfig = {
-            apiKey: "AIzaSyBSEJIdGx0jhySaF73vWxEjvFezOUr0P10",
-            authDomain: "intake-app-2026.firebaseapp.com",
-            databaseURL: "https://intake-app-2026-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "intake-app-2026",
-            storageBucket: "intake-app-2026.firebasestorage.app",
-            messagingSenderId: "387454682734",
-            appId: "1:387454682734:web:bb28e5136ab1891bc7887f"
-        };
+        let db = null;
+        let firebaseReady = false;
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        function waitForFirebase() {
+            return new Promise((resolve) => {
+                const check = () => {
+                    if (typeof firebase !== 'undefined') {
+                        const firebaseConfig = {
+                            apiKey: "AIzaSyBSEJIdGx0jhySaF73vWxEjvFezOUr0P10",
+                            authDomain: "intake-app-2026.firebaseapp.com",
+                            databaseURL: "https://intake-app-2026-default-rtdb.europe-west1.firebasedatabase.app",
+                            projectId: "intake-app-2026",
+                            storageBucket: "intake-app-2026.firebasestorage.app",
+                            messagingSenderId: "387454682734",
+                            appId: "1:387454682734:web:bb28e5136ab1891bc7887f"
+                        };
 
-        // MANAGER INLOGCODE
+                        if (!firebase.apps.length) {
+                            firebase.initializeApp(firebaseConfig);
+                        }
+                        db = firebase.database();
+                        firebaseReady = true;
+                        resolve();
+                    } else {
+                        setTimeout(check, 100);
+                    }
+                };
+                check();
+            });
+        }
+
+        // Maak Firebase klaar
+        waitForFirebase();
+
         const MANAGER_PASSWORD = "1234";
 
         const docenten = [
@@ -255,7 +268,7 @@
             { id: 'D22', naam: 'Heba Sharaawy' },
             { id: 'D23', naam: 'Irene Bakker' },
             { id: 'D24', naam: 'Robert Reijns' },
-            { id: 'D25', naam: 'Annie van der Velden' }
+            { id: 'D25', naam: 'Leon Molijn' }
         ];
 
         function checkPassword() {
@@ -284,7 +297,11 @@
         function showDashboard() {
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
-            startDashboard();
+            
+            // Wacht tot Firebase klaar is VOORDAT dashboard start
+            waitForFirebase().then(() => {
+                startDashboard();
+            });
         }
 
         function getMaxUren(docentId) {
@@ -406,7 +423,7 @@
         }
 
         function startDashboard() {
-            // Check elke 2 seconden
+            // Update elke 2 seconden
             setInterval(() => {
                 db.ref('inzetten').once('value').then(snapshot => {
                     const allInzetten = snapshot.val() || {};
@@ -415,7 +432,7 @@
                 });
             }, 2000);
 
-            // Eerste keer meteen
+            // Eerste update meteen
             db.ref('inzetten').once('value').then(snapshot => {
                 const allInzetten = snapshot.val() || {};
                 updateStats(allInzetten);
@@ -423,7 +440,6 @@
             });
         }
 
-        // Check login on load
         window.onload = function() {
             if (sessionStorage.getItem('managerLoggedIn') === 'true') {
                 showDashboard();
