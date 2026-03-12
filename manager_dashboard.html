@@ -5,8 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎯 Manager Dashboard - INTAKEWEKEN 2026</title>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -69,7 +67,7 @@
             text-align: center;
         }
         .header h1 { color: #1F4E78; font-size: 28px; margin-bottom: 10px; }
-        .logout-btn { position: absolute; top: 20px; right: 20px; padding: 8px 16px; background: #FF6B6B; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .logout-btn { position: fixed; top: 20px; right: 20px; padding: 8px 16px; background: #FF6B6B; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; z-index: 999; }
         .logout-btn:hover { background: #cc5555; }
         
         .card {
@@ -209,6 +207,10 @@
         </div>
     </div>
 
+    <!-- Firebase Scripts MOETEN HIER STAAN! -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
+
     <script>
         // Firebase Config
         const firebaseConfig = {
@@ -221,11 +223,12 @@
             appId: "1:387454682734:web:bb28e5136ab1891bc7887f"
         };
 
+        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // MANAGER INLOGCODE (Verander dit naar je wachtwoord!)
-        const MANAGER_PASSWORD = "Irene0503@@";
+        // MANAGER INLOGCODE
+        const MANAGER_PASSWORD = "1234";
 
         const docenten = [
             { id: 'D01', naam: 'Hendrikje Balkenende' },
