@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎯 Manager Dashboard - INTAKEWEKEN</title>
+    <title>🎯 Manager Dashboard - INTAKEWEKEN 2026</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -72,7 +72,6 @@
         .badge-empty { background: #ccc; color: #666; }
         .badge-partial { background: #FFF3CD; color: #333; }
         .badge-complete { background: #C6EFCE; color: #070707; }
-        .badge-confirmed { background: #70AD47; color: white; }
         .progress-bar {
             width: 100%;
             height: 20px;
@@ -103,22 +102,22 @@
             transition: transform 0.2s;
         }
         button:hover { transform: translateY(-2px); }
-        .btn-reset { background: #FF6B6B; color: white; }
         .btn-export { background: #70AD47; color: white; }
+        .btn-refresh { background: #667eea; color: white; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎯 Manager Dashboard - INTAKEWEKEN</h1>
-            <p>Live monitoring beschikbaarheid docenten | 12 Juni - 18 Juli 2026</p>
+            <h1>🎯 Manager Dashboard - INTAKEWEKEN 2026</h1>
+            <p>Live monitoring beschikbaarheid docenten | 12 Juni - 17 Juli 2026</p>
         </div>
 
         <div class="card">
             <h2>📊 Overzicht</h2>
             <div class="stats" id="statsGrid"></div>
             <div class="info-box">
-                ✓ = Bevestigd | 📝 = In afwachting | 🔒 = Vergrendeld (manager-only wijzigen)
+                ✓ = Bevestigd | 📝 = In afwachting
             </div>
         </div>
 
@@ -132,7 +131,6 @@
                         <th>Uren</th>
                         <th>Voortgang</th>
                         <th>Status</th>
-                        <th>Wijzigingen Over</th>
                     </tr>
                 </thead>
                 <tbody id="docentBody"></tbody>
@@ -142,25 +140,11 @@
         <div class="card">
             <h2>⚙️ Manager Functies</h2>
             <button class="btn-export" onclick="exportData()">📥 Export naar CSV</button>
-            <button class="btn-reset" onclick="location.reload()">🔄 Vernieuwen</button>
+            <button class="btn-refresh" onclick="location.reload()">🔄 Vernieuwen</button>
         </div>
     </div>
 
     <script>
-        // Firebase Config
-        const firebaseConfig = {
-            apiKey: "AIzaSyBSEJIdGx0jhySaF73vWxEjvFezOUr0P10",
-            authDomain: "intake-app-2026.firebaseapp.com",
-            databaseURL: "https://intake-app-2026-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "intake-app-2026",
-            storageBucket: "intake-app-2026.firebasestorage.app",
-            messagingSenderId: "387454682734",
-            appId: "1:387454682734:web:bb28e5136ab1891bc7887f"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
         const docenten = [
             { id: 'D01', naam: 'Hendrikje Balkenende' },
             { id: 'D02', naam: 'Rosanne Bartels' },
@@ -194,145 +178,118 @@
             return doc && doc.max ? doc.max : 40;
         }
 
-        function updateDashboard() {
-            db.ref('inzetten').on('value', function(snapshot) {
-                const allInzetten = snapshot.val() || {};
-                updateStats(allInzetten);
-                updateTable(allInzetten);
-            });
+        function countInzetten(docentId) {
+            let count = 0;
+            for (let i = 1; i <= 7; i++) {
+                for (let j = 0; j < 5; j++) {
+                    if (localStorage.getItem(`${docentId}-W${i}-D${j}`)) {
+                        count++;
+                    }
+                }
+            }
+            return count;
         }
 
-        function updateStats(allInzetten) {
-            const ids = Object.keys(allInzetten);
+        function updateDashboard() {
+            updateStats();
+            updateTable();
+        }
+
+        function updateStats() {
+            let totalDocenten = 0;
             let totalDagdelen = 0;
             let bevestigdCount = 0;
-            let inzetCount = 0;
 
-            ids.forEach(docentId => {
-                const inzetten = allInzetten[docentId];
-                if (inzetten && Object.keys(inzetten).length > 0) {
-                    inzetCount++;
-                    totalDagdelen += Object.keys(inzetten).length;
+            docenten.forEach(doc => {
+                const count = countInzetten(doc.id);
+                if (count > 0) {
+                    totalDocenten++;
+                    totalDagdelen += count;
+                    bevestigdCount++; // In deze versie alle inzetten tellen als bevestigd
                 }
             });
 
-            // Get status info
-            db.ref('status').once('value', function(snapshot) {
-                const allStatus = snapshot.val() || {};
-                let bevestigdCount = 0;
-                Object.keys(allStatus).forEach(docentId => {
-                    if (allStatus[docentId] && allStatus[docentId].confirmed) {
-                        bevestigdCount++;
-                    }
-                });
-
-                const statsGrid = document.getElementById('statsGrid');
-                statsGrid.innerHTML = `
-                    <div class="stat-card">
-                        <div class="stat-label">Docenten Ingezet</div>
-                        <div class="stat-value">${inzetCount}/25</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Bevestigd</div>
-                        <div class="stat-value">${bevestigdCount}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Totale Dagdelen</div>
-                        <div class="stat-value">${totalDagdelen}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Totale Uren</div>
-                        <div class="stat-value">${totalDagdelen * 4}u</div>
-                    </div>
-                `;
-            });
+            const statsGrid = document.getElementById('statsGrid');
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">Docenten Ingezet</div>
+                    <div class="stat-value">${totalDocenten}/25</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Totale Dagdelen</div>
+                    <div class="stat-value">${totalDagdelen}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Totale Uren</div>
+                    <div class="stat-value">${totalDagdelen * 4}u</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Voortgang</div>
+                    <div class="stat-value">${totalDocenten > 0 ? Math.round((totalDocenten / 25) * 100) : 0}%</div>
+                </div>
+            `;
         }
 
-        function updateTable(allInzetten) {
-            db.ref('status').once('value', function(snapshot) {
-                const allStatus = snapshot.val() || {};
-                const tbody = document.getElementById('docentBody');
-                tbody.innerHTML = '';
+        function updateTable() {
+            const tbody = document.getElementById('docentBody');
+            tbody.innerHTML = '';
 
-                docenten.forEach(doc => {
-                    const inzetten = allInzetten[doc.id] || {};
-                    const dagdelen = Object.keys(inzetten).length;
-                    const maxUren = getMaxUren(doc.id);
-                    const uren = dagdelen * 4;
-                    const percentage = maxUren > 0 ? Math.round((uren / maxUren) * 100) : 0;
+            docenten.forEach(doc => {
+                const dagdelen = countInzetten(doc.id);
+                const maxUren = getMaxUren(doc.id);
+                const uren = dagdelen * 4;
+                const percentage = maxUren > 0 ? Math.round((uren / maxUren) * 100) : 0;
 
-                    const status = allStatus[doc.id] || { confirmed: false, changesLeft: 2 };
+                let statusBadge = '';
+                
+                if (dagdelen === 0) {
+                    statusBadge = '<span class="badge badge-empty">Niet ingezet</span>';
+                } else if (uren < maxUren) {
+                    statusBadge = '<span class="badge badge-partial">Deels</span>';
+                } else {
+                    statusBadge = '<span class="badge badge-complete">Compleet ✓</span>';
+                }
 
-                    let statusBadge = '';
-                    
-                    if (dagdelen === 0) {
-                        statusBadge = '<span class="badge badge-empty">Niet ingezet</span>';
-                    } else if (uren < maxUren) {
-                        statusBadge = '<span class="badge badge-partial">Deels</span>';
-                    } else {
-                        statusBadge = '<span class="badge badge-complete">Compleet ✓</span>';
-                    }
-
-                    if (status.confirmed) {
-                        statusBadge += ' <span class="badge badge-confirmed">✓ Bevestigd</span>';
-                    }
-
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td><strong>${doc.naam}</strong></td>
-                        <td>${dagdelen}</td>
-                        <td>${uren}/${maxUren}u</td>
-                        <td>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: ${Math.min(100, percentage)}%"></div>
-                            </div>
-                            <small>${percentage}%</small>
-                        </td>
-                        <td>${statusBadge}</td>
-                        <td>${status.changesLeft}</td>
-                    `;
-                    tbody.appendChild(row);
-                });
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${doc.naam}</strong></td>
+                    <td>${dagdelen}</td>
+                    <td>${uren}/${maxUren}u</td>
+                    <td>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${Math.min(100, percentage)}%"></div>
+                        </div>
+                        <small>${percentage}%</small>
+                    </td>
+                    <td>${statusBadge}</td>
+                `;
+                tbody.appendChild(row);
             });
         }
 
         function exportData() {
-            db.ref('inzetten').once('value', function(snapshot) {
-                const allInzetten = snapshot.val() || {};
-                let csv = 'Docent,Dagdelen,Uren,Max Uren,Bevestigd,Wijzigingen Over\n';
+            let csv = 'Docent,Dagdelen,Uren,Max Uren,Percentage\n';
 
-                docenten.forEach(doc => {
-                    const inzetten = allInzetten[doc.id] || {};
-                    const dagdelen = Object.keys(inzetten).length;
-                    const maxUren = getMaxUren(doc.id);
-                    const uren = dagdelen * 4;
-
-                    db.ref('status/' + doc.id).once('value', function(statusSnap) {
-                        const status = statusSnap.val() || { confirmed: false, changesLeft: 2 };
-                        const bevestigd = status.confirmed ? 'Ja' : 'Nee';
-                        
-                        csv += `${doc.naam},${dagdelen},${uren},${maxUren},${bevestigd},${status.changesLeft}\n`;
-                    });
-                });
-
-                setTimeout(() => {
-                    const blob = new Blob([csv], { type: 'text/csv' });
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'intaken_beschikbaarheid.csv';
-                    a.click();
-                }, 1000);
+            docenten.forEach(doc => {
+                const dagdelen = countInzetten(doc.id);
+                const maxUren = getMaxUren(doc.id);
+                const uren = dagdelen * 4;
+                const percentage = maxUren > 0 ? Math.round((uren / maxUren) * 100) : 0;
+                
+                csv += `${doc.naam},${dagdelen},${uren},${maxUren},${percentage}%\n`;
             });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'intaken_beschikbaarheid.csv';
+            a.click();
         }
 
-        // Start updating
-        updateDashboard();
+        // Update dashboard elke 2 seconden
         setInterval(updateDashboard, 2000);
+        updateDashboard();
     </script>
-
-    <!-- Firebase Scripts (moeten EERST geladen worden!) -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
 </body>
 </html>
