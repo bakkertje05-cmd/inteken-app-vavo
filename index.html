@@ -88,13 +88,13 @@
     <div class="container">
         <div class="header">
             <h1>📅 INTAKEWEKEN 12 JUNI-18 JULI 2026</h1>
-            <p>Zet jezelf in voor de gespreksrondes • Max 40-60 uur • Bevestig je inzetting</p>
+            <p>Zet jezelf in voor de gespreksrondes • Max 40-60 uur • Bevestig je inzet</p>
             <div class="instruction">
                 <strong>📋 Instructie:</strong><br>
                 1. Selecteer je naam in het dropdown menu<br>
                 2. Plan dagdelen in tot je aan de 40 uur bent<br>
                 3. Let op: Plan tenminste een aantal dagdelen in de <strong>laatste twee weken</strong> (week 6 & 7)<br>
-                4. Bevestig je inzetting wanneer je klaar bent<br>
+                4. Bevestig je inzet wanneer je klaar bent<br>
                 <span class="sync-badge">✓ Data wordt live opgeslagen in Firebase!</span>
             </div>
         </div>
@@ -181,7 +181,7 @@
                 <div class="weeks" id="weeks"></div>
 
                 <button id="confirmBtn" class="confirm-btn" onclick="confirmInzet()" style="display: none;">
-                    ✓ Bevestig mijn inzetting
+                    ✓ Bevestig mijn inzet
                 </button>
 
                 <button onclick="resetInzet()" style="width: 100%; padding: 12px; background: #FF6B6B; color: white; border: none; border-radius: 6px; font-weight: bold; margin-top: 20px; cursor: pointer;">🗑️ Wis alles</button>
@@ -424,7 +424,7 @@
                 if (status.confirmed) {
                     statusBox.className = 'status-box confirmed';
                     if (status.changesLeft === 0) {
-                        statusText.innerHTML = '✓ <strong>BEVESTIGD EN VERGRENDELD</strong><br>Je inzetting is vastgesteld. Alleen de beheerder kan dit nog wijzigen.';
+                        statusText.innerHTML = '✓ <strong>BEVESTIGD EN VERGRENDELD</strong><br>Je inzet is vastgesteld. Alleen de beheerder kan dit nog wijzigen.';
                     } else {
                         statusText.innerHTML = `✓ <strong>BEVESTIGD</strong><br>Je hebt nog <strong>${status.changesLeft}</strong> wijziging(en) over.`;
                     }
@@ -443,7 +443,7 @@
             });
             updateStats(id);
             updateStatusBox(id);
-            alert('✓ Je inzetting is bevestigd! Je hebt nog 2 keer de mogelijkheid om dit te wijzigen.');
+            alert('✓ Je inzet is bevestigd! Je hebt nog 2 keer de mogelijkheid om dit te wijzigen.');
         }
 
         function resetInzet() {
