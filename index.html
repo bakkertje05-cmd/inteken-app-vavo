@@ -132,33 +132,51 @@
         </div>
     </div>
 
-    <!-- Firebase Scripts MOETEN HIER STAAN! -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
 
     <script>
-        // Firebase Config
-        const firebaseConfig = {
-            apiKey: "AIzaSyBSEJIdGx0jhySaF73vWxEjvFezOUr0P10",
-            authDomain: "intake-app-2026.firebaseapp.com",
-            databaseURL: "https://intake-app-2026-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "intake-app-2026",
-            storageBucket: "intake-app-2026.firebasestorage.app",
-            messagingSenderId: "387454682734",
-            appId: "1:387454682734:web:bb28e5136ab1891bc7887f"
-        };
+        let db = null;
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        function waitForFirebase() {
+            return new Promise((resolve) => {
+                const check = () => {
+                    if (typeof firebase !== 'undefined') {
+                        const firebaseConfig = {
+                            apiKey: "AIzaSyBSEJIdGx0jhySaF73vWxEjvFezOUr0P10",
+                            authDomain: "intake-app-2026.firebaseapp.com",
+                            databaseURL: "https://intake-app-2026-default-rtdb.europe-west1.firebasedatabase.app",
+                            projectId: "intake-app-2026",
+                            storageBucket: "intake-app-2026.firebasestorage.app",
+                            messagingSenderId: "387454682734",
+                            appId: "1:387454682734:web:bb28e5136ab1891bc7887f"
+                        };
+
+                        if (!firebase.apps.length) {
+                            firebase.initializeApp(firebaseConfig);
+                        }
+                        db = firebase.database();
+                        resolve();
+                    } else {
+                        setTimeout(check, 100);
+                    }
+                };
+                check();
+            });
+        }
+
+        // Wacht tot Firebase klaar is
+        waitForFirebase().then(() => {
+            console.log('✅ Firebase ready');
+        });
 
         const weeks = [
-            { week: 1, start: new Date(2026, 5, 12) },   // Week 1: ALLEEN VRIJDAG 12 juni
-            { week: 2, start: new Date(2026, 5, 15) },   // Week 2: Ma 15 - Vr 19 juni
-            { week: 3, start: new Date(2026, 5, 22) },   // Week 3: Ma 22 - Vr 26 juni
-            { week: 4, start: new Date(2026, 5, 29) },   // Week 4: Ma 29 - Vr 3 juli
-            { week: 5, start: new Date(2026, 6, 6) },    // Week 5: Ma 6 - Vr 10 juli
-            { week: 6, start: new Date(2026, 6, 13) }    // Week 6: Ma 13 - Vr 17 juli
+            { week: 1, start: new Date(2026, 5, 12) },
+            { week: 2, start: new Date(2026, 5, 15) },
+            { week: 3, start: new Date(2026, 5, 22) },
+            { week: 4, start: new Date(2026, 5, 29) },
+            { week: 5, start: new Date(2026, 6, 6) },
+            { week: 6, start: new Date(2026, 6, 13) }
         ];
 
         const days = ['Ma', 'Di', 'Wo', 'Do', 'Vr'];
@@ -189,29 +207,30 @@
                 document.getElementById('appContent').style.display = 'none';
                 return;
             }
+            
             document.getElementById('appContent').style.display = 'block';
             document.getElementById('maxLabel').textContent = `Uren (max ${getMax(id)})`;
-            
             loadFromFirebase(id);
         }
 
         function loadFromFirebase(id) {
-            db.ref('inzetten/' + id).once('value').then(snapshot => {
-                const data = snapshot.val() || {};
-                renderWeeks(id, data);
-                updateStats(id, data);
-            }).catch(err => console.error('Firebase error:', err));
+            // Wacht tot Firebase klaar is
+            waitForFirebase().then(() => {
+                db.ref('inzetten/' + id).once('value').then(snapshot => {
+                    const data = snapshot.val() || {};
+                    renderWeeks(id, data);
+                    updateStats(id, data);
+                });
+            });
         }
 
         function renderWeeks(id, inzetten) {
             let html = '';
             weeks.forEach(w => {
                 let dates = getDates(w.start);
-                
-                // Week 1: ALLEEN VRIJDAG
                 let daysToShow = dates;
                 if (w.week === 1) {
-                    daysToShow = [dates[4]]; // Alleen vrijdag
+                    daysToShow = [dates[4]];
                 }
                 
                 let endDate = new Date(daysToShow[daysToShow.length - 1]);
@@ -219,7 +238,6 @@
                 html += `<div class="week"><h3>Week ${w.week} • ${dateRange}</h3>`;
                 
                 daysToShow.forEach((date, idx) => {
-                    // Bepaal de juiste dayIndex voor week 1 (altijd 4 = vrijdag)
                     const dayIdx = w.week === 1 ? 4 : idx;
                     const dayName = days[dayIdx];
                     
@@ -251,6 +269,8 @@
         }
 
         function toggle(key, id, hours) {
+            if (!db) return;
+            
             db.ref('inzetten/' + id).once('value').then(snapshot => {
                 let inzetten = snapshot.val() || {};
                 const max = getMax(id);
@@ -306,16 +326,18 @@
         }
 
         function confirmInzet() {
+            if (!db) return;
             const id = document.getElementById('docentSelect').value;
             db.ref('status/' + id).set({
                 confirmed: true,
                 timestamp: new Date().toISOString()
             });
-            alert('✓ Je inzet is bevestigd!');
+            alert('✓ Je inzetting is bevestigd!');
         }
 
         function resetAll() {
             if (confirm('ALLE inzetten wissen?')) {
+                if (!db) return;
                 const id = document.getElementById('docentSelect').value;
                 db.ref('inzetten/' + id).set({});
                 loadFromFirebase(id);
