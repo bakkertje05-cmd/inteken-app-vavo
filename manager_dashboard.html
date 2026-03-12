@@ -111,13 +111,14 @@
         <div class="header">
             <h1>🎯 Manager Dashboard - INTAKEWEKEN 2026</h1>
             <p>Live monitoring beschikbaarheid docenten | 12 Juni - 17 Juli 2026</p>
+            <p style="font-size: 12px; color: #999; margin-top: 10px;">Ochtend = 2 uur (10:00-12:00) | Middag = 3 uur (13:00-16:00)</p>
         </div>
 
         <div class="card">
             <h2>📊 Overzicht</h2>
             <div class="stats" id="statsGrid"></div>
             <div class="info-box">
-                ✓ = Bevestigd | 📝 = In afwachting
+                ✓ = Compleet | 📝 = Deels ingevuld
             </div>
         </div>
 
@@ -127,7 +128,7 @@
                 <thead>
                     <tr>
                         <th>Docent</th>
-                        <th>Dagdelen</th>
+                        <th>Slots</th>
                         <th>Uren</th>
                         <th>Voortgang</th>
                         <th>Status</th>
@@ -178,13 +179,23 @@
             return doc && doc.max ? doc.max : 40;
         }
 
-        function countInzetten(docentId) {
+        function getTotalHours(docentId) {
+            let hours = 0;
+            for (let i = 1; i <= 7; i++) {
+                for (let j = 0; j < 5; j++) {
+                    if (localStorage.getItem(`${docentId}-W${i}-D${j}-O`)) hours += 2;  // Ochtend = 2 uur
+                    if (localStorage.getItem(`${docentId}-W${i}-D${j}-M`)) hours += 3;  // Middag = 3 uur
+                }
+            }
+            return hours;
+        }
+
+        function countSlots(docentId) {
             let count = 0;
             for (let i = 1; i <= 7; i++) {
                 for (let j = 0; j < 5; j++) {
-                    if (localStorage.getItem(`${docentId}-W${i}-D${j}`)) {
-                        count++;
-                    }
+                    if (localStorage.getItem(`${docentId}-W${i}-D${j}-O`)) count++;
+                    if (localStorage.getItem(`${docentId}-W${i}-D${j}-M`)) count++;
                 }
             }
             return count;
@@ -197,15 +208,16 @@
 
         function updateStats() {
             let totalDocenten = 0;
-            let totalDagdelen = 0;
-            let bevestigdCount = 0;
+            let totalUren = 0;
+            let totalSlots = 0;
 
             docenten.forEach(doc => {
-                const count = countInzetten(doc.id);
-                if (count > 0) {
+                const hours = getTotalHours(doc.id);
+                const slots = countSlots(doc.id);
+                if (hours > 0) {
                     totalDocenten++;
-                    totalDagdelen += count;
-                    bevestigdCount++; // In deze versie alle inzetten tellen als bevestigd
+                    totalUren += hours;
+                    totalSlots += slots;
                 }
             });
 
@@ -216,12 +228,12 @@
                     <div class="stat-value">${totalDocenten}/25</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Totale Dagdelen</div>
-                    <div class="stat-value">${totalDagdelen}</div>
+                    <div class="stat-label">Totale Slots</div>
+                    <div class="stat-value">${totalSlots}</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">Totale Uren</div>
-                    <div class="stat-value">${totalDagdelen * 4}u</div>
+                    <div class="stat-value">${totalUren}u</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">Voortgang</div>
@@ -235,17 +247,17 @@
             tbody.innerHTML = '';
 
             docenten.forEach(doc => {
-                const dagdelen = countInzetten(doc.id);
+                const slots = countSlots(doc.id);
+                const uren = getTotalHours(doc.id);
                 const maxUren = getMaxUren(doc.id);
-                const uren = dagdelen * 4;
                 const percentage = maxUren > 0 ? Math.round((uren / maxUren) * 100) : 0;
 
                 let statusBadge = '';
                 
-                if (dagdelen === 0) {
+                if (uren === 0) {
                     statusBadge = '<span class="badge badge-empty">Niet ingezet</span>';
                 } else if (uren < maxUren) {
-                    statusBadge = '<span class="badge badge-partial">Deels</span>';
+                    statusBadge = '<span class="badge badge-partial">Deels (nog ' + (maxUren - uren) + 'u)</span>';
                 } else {
                     statusBadge = '<span class="badge badge-complete">Compleet ✓</span>';
                 }
@@ -253,7 +265,7 @@
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td><strong>${doc.naam}</strong></td>
-                    <td>${dagdelen}</td>
+                    <td>${slots}</td>
                     <td>${uren}/${maxUren}u</td>
                     <td>
                         <div class="progress-bar">
@@ -268,15 +280,15 @@
         }
 
         function exportData() {
-            let csv = 'Docent,Dagdelen,Uren,Max Uren,Percentage\n';
+            let csv = 'Docent,Slots,Uren,Max Uren,Percentage\n';
 
             docenten.forEach(doc => {
-                const dagdelen = countInzetten(doc.id);
+                const slots = countSlots(doc.id);
+                const uren = getTotalHours(doc.id);
                 const maxUren = getMaxUren(doc.id);
-                const uren = dagdelen * 4;
                 const percentage = maxUren > 0 ? Math.round((uren / maxUren) * 100) : 0;
                 
-                csv += `${doc.naam},${dagdelen},${uren},${maxUren},${percentage}%\n`;
+                csv += `${doc.naam},${slots},${uren},${maxUren},${percentage}%\n`;
             });
 
             const blob = new Blob([csv], { type: 'text/csv' });
