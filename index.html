@@ -58,16 +58,18 @@
             margin-top: 15px; font-size: 14px;
         }
         .confirm-btn:hover { background: #5a8c39; }
+        .time-slot { font-size: 10px; color: #999; margin-top: 2px; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>📅 INTAKEWEKEN 12 JUNI-18 JULI 2026</h1>
-            <p>Zet jezelf in voor de gespreksrondes • Max 40-60 uur • Bevestig je inzet</p>
+            <p>Zet jezelf in voor de gespreksrondes • Max 40-60 uur • Bevestig je inzetting</p>
             <div class="instruction-box">
                 <strong>📋 Instructie:</strong><br>
-                1. Selecteer je naam • 2. Klik dagdelen aan • 3. Bevestig wanneer klaar
+                1. Selecteer je naam • 2. Klik ochtend (10-12u) of middag (13-16u) • 3. Bevestig wanneer klaar<br>
+                <strong>Ochtend = 2 uur | Middag = 3 uur</strong>
             </div>
         </div>
         
@@ -105,10 +107,6 @@
             <div id="appContent" style="display: none;">
                 <div class="stats">
                     <div class="stat">
-                        <div class="stat-value" id="totalDays">0</div>
-                        <div class="stat-label">Dagdelen</div>
-                    </div>
-                    <div class="stat">
                         <div class="stat-value" id="totalHours">0</div>
                         <div class="stat-label" id="maxLabel">Uren (max 40)</div>
                     </div>
@@ -116,13 +114,17 @@
                         <div class="stat-value" id="pct">0%</div>
                         <div class="stat-label">Voortgang</div>
                     </div>
+                    <div class="stat">
+                        <div class="stat-value" id="slots">0</div>
+                        <div class="stat-label">Inzet slots</div>
+                    </div>
                 </div>
 
                 <h2 style="color: #1F4E78; margin-top: 30px; margin-bottom: 15px;">📅 Weken Juni-Juli 2026</h2>
                 <div class="weeks" id="weeks"></div>
 
                 <button id="confirmBtn" class="confirm-btn" onclick="confirmInzet()" style="display: none; margin-top: 20px;">
-                    ✓ Bevestig mijn inzet
+                    ✓ Bevestig mijn inzetting
                 </button>
 
                 <button onclick="resetAll()" style="width: 100%; padding: 12px; background: #FF6B6B; color: white; border: none; border-radius: 6px; font-weight: bold; margin-top: 20px; cursor: pointer;">🗑️ Wis alles</button>
@@ -184,15 +186,24 @@
                 let dateRange = `${formatDate(dates[0])}-${formatDate(endDate)}`;
                 html += `<div class="week"><h3>Week ${w.week} • ${dateRange}</h3>`;
                 dates.forEach((date, i) => {
-                    const key = `${id}-W${w.week}-D${i}`;
-                    const checked = localStorage.getItem(key) ? 'selected' : '';
-                    const disabled = !canAdd(id) && !localStorage.getItem(key) ? 'disabled' : '';
+                    const ochtendKey = `${id}-W${w.week}-D${i}-O`;
+                    const middagKey = `${id}-W${w.week}-D${i}-M`;
+                    const ochtendChecked = localStorage.getItem(ochtendKey) ? 'selected' : '';
+                    const middagChecked = localStorage.getItem(middagKey) ? 'selected' : '';
+                    const ochtendDisabled = !canAdd(id, 2) && !localStorage.getItem(ochtendKey) ? 'disabled' : '';
+                    const middagDisabled = !canAdd(id, 3) && !localStorage.getItem(middagKey) ? 'disabled' : '';
+                    
                     html += `
                         <div class="day">
                             <div class="day-name">${days[i]}</div>
                             <div class="day-date">${formatDate(date)}</div>
-                            <button class="btn ${checked} ${disabled}" onclick="toggle('${key}', '${id}')">
-                                ${localStorage.getItem(key) ? '✓ Ingezet' : 'Zet in'}
+                            <button class="btn ${ochtendChecked} ${ochtendDisabled}" onclick="toggle('${ochtendKey}', '${id}', 2)">
+                                ${localStorage.getItem(ochtendKey) ? '✓ Ochtend' : 'Ochtend'}
+                                <div class="time-slot">10:00-12:00 (2u)</div>
+                            </button>
+                            <button class="btn ${middagChecked} ${middagDisabled}" onclick="toggle('${middagKey}', '${id}', 3)">
+                                ${localStorage.getItem(middagKey) ? '✓ Middag' : 'Middag'}
+                                <div class="time-slot">13:00-16:00 (3u)</div>
                             </button>
                         </div>
                     `;
@@ -202,13 +213,13 @@
             document.getElementById('weeks').innerHTML = html;
         }
 
-        function toggle(key, id) {
+        function toggle(key, id, hours) {
             const max = getMax(id);
-            const count = countInzetten(id);
+            const totalHours = getTotalHours(id);
             
             if (!localStorage.getItem(key)) {
-                if (count * 4 >= max) {
-                    alert(`❌ Je hebt max ${max} uren bereikt!`);
+                if (totalHours + hours > max) {
+                    alert(`❌ Je mag maar ${max} uur! Nu: ${totalHours}u + ${hours}u = ${totalHours + hours}u`);
                     return;
                 }
                 localStorage.setItem(key, '1');
@@ -220,38 +231,48 @@
             updateStats(id);
         }
 
-        function canAdd(id) {
+        function canAdd(id, hours) {
             const max = getMax(id);
-            return (countInzetten(id) * 4) < max;
+            return (getTotalHours(id) + hours) <= max;
         }
 
-        function countInzetten(id) {
+        function getTotalHours(id) {
+            let hours = 0;
+            for (let i = 1; i <= 7; i++) {
+                for (let j = 0; j < 5; j++) {
+                    if (localStorage.getItem(`${id}-W${i}-D${j}-O`)) hours += 2;
+                    if (localStorage.getItem(`${id}-W${i}-D${j}-M`)) hours += 3;
+                }
+            }
+            return hours;
+        }
+
+        function countSlots(id) {
             let count = 0;
             for (let i = 1; i <= 7; i++) {
                 for (let j = 0; j < 5; j++) {
-                    if (localStorage.getItem(`${id}-W${i}-D${j}`)) {
-                        count++;
-                    }
+                    if (localStorage.getItem(`${id}-W${i}-D${j}-O`)) count++;
+                    if (localStorage.getItem(`${id}-W${i}-D${j}-M`)) count++;
                 }
             }
             return count;
         }
 
         function updateStats(id) {
-            const count = countInzetten(id);
-            const hours = count * 4;
+            const hours = getTotalHours(id);
+            const slots = countSlots(id);
             const max = getMax(id);
             const pct = Math.round((hours / max) * 100);
             
-            document.getElementById('totalDays').textContent = count;
             document.getElementById('totalHours').textContent = hours;
             document.getElementById('pct').textContent = pct + '%';
+            document.getElementById('slots').textContent = slots;
             
-            document.getElementById('confirmBtn').style.display = count > 0 ? 'block' : 'none';
+            document.getElementById('confirmBtn').style.display = hours > 0 ? 'block' : 'none';
         }
 
         function confirmInzet() {
-            alert('✓ Je inzet is bevestigd!');
+            alert('✓ Je inzetting is bevestigd!');
         }
 
         function resetAll() {
@@ -259,7 +280,8 @@
                 const id = document.getElementById('docentSelect').value;
                 for (let i = 1; i <= 7; i++) {
                     for (let j = 0; j < 5; j++) {
-                        localStorage.removeItem(`${id}-W${i}-D${j}`);
+                        localStorage.removeItem(`${id}-W${i}-D${j}-O`);
+                        localStorage.removeItem(`${id}-W${i}-D${j}-M`);
                     }
                 }
                 selectDocent();
