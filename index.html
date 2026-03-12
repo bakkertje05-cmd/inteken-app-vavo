@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📅 INTAKEWEKEN 12 JUNI-18 JULI 2026</title>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -20,9 +20,10 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 30px; text-align: center; 
         }
         .header h1 { color: #1F4E78; font-size: 28px; margin-bottom: 10px; }
-        .header .instruction {
-            background: #FFF3CD; padding: 15px; border-radius: 8px; margin-top: 20px; 
-            border-left: 4px solid #FFC000; text-align: left; font-size: 14px; color: #333;
+        .instruction-box {
+            background: #FFF3CD; padding: 15px; border-radius: 8px; 
+            margin-top: 20px; border-left: 4px solid #FFC000; text-align: left; 
+            font-size: 14px; color: #333;
         }
         .content { 
             background: white; padding: 30px; border-radius: 10px;
@@ -32,7 +33,6 @@
             width: 100%; padding: 12px; border: 2px solid #ddd;
             border-radius: 6px; font-size: 14px; margin-bottom: 20px; 
         }
-        .loading { text-align: center; padding: 20px; color: #667eea; font-weight: bold; }
         .weeks { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
         .week { background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #667eea; }
         .week h3 { color: #1F4E78; margin-bottom: 10px; font-size: 14px; }
@@ -69,33 +69,21 @@
         }
         .confirm-btn:hover { background: #5a8c39; }
         .confirm-btn:disabled { background: #ccc; cursor: not-allowed; }
-        .legend {
-            display: flex; gap: 15px; margin-bottom: 20px; padding: 15px;
-            background: #f0f2f5; border-radius: 8px; font-size: 12px; flex-wrap: wrap;
-        }
-        .legend-item { display: flex; align-items: center; gap: 8px; }
-        .legend-color {
-            width: 20px; height: 20px; border-radius: 3px; border: 2px solid #ddd;
-        }
-        .sync-badge {
-            display: inline-block; padding: 6px 12px; background: #70AD47;
-            color: white; border-radius: 12px; font-size: 11px; font-weight: bold;
-            margin-top: 10px;
-        }
+        .loading { text-align: center; color: #999; padding: 20px; }
+        .special { background: #FFF3CD; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 13px; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>📅 INTAKEWEKEN 12 JUNI-18 JULI 2026</h1>
-            <p>Zet jezelf in voor de gespreksrondes • Max 40-60 uur • Bevestig je inzet</p>
-            <div class="instruction">
+            <p>Zet jezelf in voor de gespreksrondes • Max 40-60 uur • Bevestig je inzetting</p>
+            <div class="instruction-box">
                 <strong>📋 Instructie:</strong><br>
                 1. Selecteer je naam in het dropdown menu<br>
                 2. Plan dagdelen in tot je aan de 40 uur bent<br>
                 3. Let op: Plan tenminste een aantal dagdelen in de <strong>laatste twee weken</strong> (week 6 & 7)<br>
-                4. Bevestig je inzet wanneer je klaar bent<br>
-                <span class="sync-badge">✓ Data wordt live opgeslagen in Firebase!</span>
+                4. Bevestig je inzetting wanneer je klaar bent
             </div>
         </div>
         
@@ -131,27 +119,8 @@
             </select>
 
             <div id="content" style="display: none;">
-                <div id="specialNote" class="instruction" style="display: none; margin-bottom: 20px;">
+                <div id="specialNote" class="special" style="display: none;">
                     ⭐ Jij bent een senior docent met 60 uur beschikbaarheid (ipv 40 uur)
-                </div>
-
-                <div class="legend">
-                    <div class="legend-item">
-                        <div class="legend-color" style="background: #667eea; border-color: #667eea;"></div>
-                        <span>Beschikbaar</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="background: #70AD47; border-color: #70AD47;"></div>
-                        <span>Jij ingetekend</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="background: #FFB3B3; border-color: #FF6B6B;"></div>
-                        <span>Groep vol (max 3)</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="background: #ccc; border-color: #999;"></div>
-                        <span>Max uren bereikt</span>
-                    </div>
                 </div>
 
                 <div class="stats">
@@ -181,7 +150,7 @@
                 <div class="weeks" id="weeks"></div>
 
                 <button id="confirmBtn" class="confirm-btn" onclick="confirmInzet()" style="display: none;">
-                    ✓ Bevestig mijn inzet
+                    ✓ Bevestig mijn inzetting
                 </button>
 
                 <button onclick="resetInzet()" style="width: 100%; padding: 12px; background: #FF6B6B; color: white; border: none; border-radius: 6px; font-weight: bold; margin-top: 20px; cursor: pointer;">🗑️ Wis alles</button>
@@ -190,46 +159,35 @@
     </div>
 
     <script>
-        // Firebase config
+        // Firebase Config
         const firebaseConfig = {
-            databaseURL: "https://intake-app-2026-default-rtdb.europe-west1.firebaseio.com"
+            apiKey: "AIzaSyBSEJIdGx0jhySaF73vWxEjvFezOUr0P10",
+            authDomain: "intake-app-2026.firebaseapp.com",
+            databaseURL: "https://intake-app-2026-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "intake-app-2026",
+            storageBucket: "intake-app-2026.firebasestorage.app",
+            messagingSenderId: "387454682734",
+            appId: "1:387454682734:web:bb28e5136ab1891bc7887f"
         };
 
-        // Wacht tot Firebase beschikbaar is
-        function initFirebase() {
-            if (typeof firebase !== 'undefined') {
-                try {
-                    firebase.initializeApp(firebaseConfig);
-                    window.database = firebase.database();
-                    console.log('✓ Firebase initialized');
-                } catch (e) {
-                    console.log('Firebase already initialized');
-                    window.database = firebase.database();
-                }
-            } else {
-                setTimeout(initFirebase, 100);
-            }
-        }
-        
-        initFirebase();
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
         const weeks = [
-            { week: 1, start: new Date(2024, 4, 27), maxUren: 10 },
-            { week: 2, start: new Date(2024, 5, 3), maxUren: 14 },
-            { week: 3, start: new Date(2024, 5, 10), maxUren: 21 },
-            { week: 4, start: new Date(2024, 5, 17), maxUren: 28 },
-            { week: 5, start: new Date(2024, 5, 24), maxUren: 36 },
-            { week: 6, start: new Date(2024, 6, 1), maxUren: 55 },
-            { week: 7, start: new Date(2024, 6, 8), maxUren: 66 }
+            { week: 1, start: new Date(2026, 5, 10) },
+            { week: 2, start: new Date(2026, 5, 17) },
+            { week: 3, start: new Date(2026, 5, 24) },
+            { week: 4, start: new Date(2026, 6, 1) },
+            { week: 5, start: new Date(2026, 6, 8) },
+            { week: 6, start: new Date(2026, 6, 15) },
+            { week: 7, start: new Date(2026, 6, 22) }
         ];
 
         const days = ['Ma', 'Di', 'Wo', 'Do', 'Vr'];
         const months = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul'];
+        
         const max60Docenten = ['D04', 'D05', 'D09'];
-
-        let currentDocent = null;
-        let inzettenListener = null;
-        let statusListener = null;
 
         function getMaxUren(docentId) {
             return max60Docenten.includes(docentId) ? 60 : 40;
@@ -253,12 +211,8 @@
             let id = document.getElementById('docentSelect').value;
             if (!id) {
                 document.getElementById('content').style.display = 'none';
-                if (inzettenListener) inzettenListener();
-                if (statusListener) statusListener();
                 return;
             }
-
-            currentDocent = id;
             document.getElementById('content').style.display = 'block';
             
             let maxUren = getMaxUren(id);
@@ -270,93 +224,58 @@
                 document.getElementById('specialNote').style.display = 'none';
             }
 
-            // Luister naar Firebase updates
-            if (inzettenListener) inzettenListener();
-            if (statusListener) statusListener();
+            loadFromFirebase(id);
+        }
 
-            inzettenListener = window.database.ref(`users/${id}/inzetten`).on('value', (snapshot) => {
-                renderWeeks(id);
-                updateStats(id);
-            });
-
-            statusListener = window.database.ref(`users/${id}/status`).on('value', (snapshot) => {
-                updateStatusBox(id);
+        function loadFromFirebase(docentId) {
+            db.ref('inzetten/' + docentId).on('value', function(snapshot) {
+                const data = snapshot.val() || {};
+                renderWeeks(docentId, data);
+                updateStats(docentId, data);
+                loadStatus(docentId);
             });
         }
 
-        function countDocentsInSlot(week, day, type) {
-            // Dit zal later met Firebase geupdate worden
-            return 0;
-        }
-
-        function renderWeeks(docentId) {
+        function renderWeeks(docentId, docentInzetten) {
             let html = '';
             let maxUren = getMaxUren(docentId);
-            
-            window.database.ref(`users/${docentId}/inzetten`).once('value', (snapshot) => {
-                const docentInzetten = snapshot.val() || {};
-                
-                weeks.forEach(w => {
-                    let dates = getDates(w.start);
-                    html += `<div class="week">
-                        <h3>Week ${w.week}</h3>
-                        <div class="week-capacity">Max week: ${w.maxUren}u</div>`;
+            weeks.forEach(w => {
+                let dates = getDates(w.start);
+                html += `<div class="week"><h3>Week ${w.week}</h3>`;
+                dates.forEach((date, i) => {
+                    let ochtendKey = `W${w.week}-D${i}-O`;
+                    let middagKey = `W${w.week}-D${i}-M`;
+                    let isOchtendSelected = docentInzetten[ochtendKey];
+                    let isMiddagSelected = docentInzetten[middagKey];
                     
-                    dates.forEach((date, i) => {
-                        let ochtendKey = `W${w.week}-D${i}-O`;
-                        let middagKey = `W${w.week}-D${i}-M`;
-                        
-                        let ochtendSelected = docentInzetten[ochtendKey] ? true : false;
-                        let middagSelected = docentInzetten[middagKey] ? true : false;
-                        
-                        let totalHours = Object.keys(docentInzetten).length * 4;
-                        let canAddMore = totalHours < maxUren;
-
-                        window.database.ref(`users/${docentId}/status`).once('value', (statusSnap) => {
-                            const status = statusSnap.val() || { confirmed: false, changesLeft: 2 };
-                            let isLocked = status.confirmed && status.changesLeft === 0;
-                            
-                            html += `
-                                <div class="day">
-                                    <div class="day-name">${days[i]}</div>
-                                    <div class="day-date">${formatDate(date)}</div>
-                                    <button class="btn ${ochtendSelected ? 'selected' : ''} 
-                                        ${!canAddMore && !ochtendSelected ? 'disabled' : ''}
-                                        ${isLocked && !ochtendSelected ? 'disabled' : ''}
-                                        " 
-                                        onclick="toggle('${docentId}', '${ochtendKey}')">
-                                        O ${ochtendSelected ? '✓' : ''}
-                                    </button>
-                                    <button class="btn ${middagSelected ? 'selected' : ''} 
-                                        ${!canAddMore && !middagSelected ? 'disabled' : ''}
-                                        ${isLocked && !middagSelected ? 'disabled' : ''}
-                                        " 
-                                        onclick="toggle('${docentId}', '${middagKey}')">
-                                        M ${middagSelected ? '✓' : ''}
-                                    </button>
-                                </div>
-                            `;
-                        });
-                    });
-                    html += '</div>';
+                    let totalDagdelen = Object.keys(docentInzetten).length;
+                    let totalHours = totalDagdelen * 4;
+                    let canAddMore = totalHours < maxUren;
+                    
+                    html += `
+                        <div class="day">
+                            <div class="day-name">${days[i]}</div>
+                            <div class="day-date">${formatDate(date)}</div>
+                            <button class="btn ${isOchtendSelected ? 'selected' : ''} ${!canAddMore && !isOchtendSelected ? 'disabled' : ''}" 
+                                onclick="toggleInzet('${docentId}', '${ochtendKey}')">
+                                O ${isOchtendSelected ? '✓' : ''}
+                            </button>
+                            <button class="btn ${isMiddagSelected ? 'selected' : ''} ${!canAddMore && !isMiddagSelected ? 'disabled' : ''}" 
+                                onclick="toggleInzet('${docentId}', '${middagKey}')">
+                                M ${isMiddagSelected ? '✓' : ''}
+                            </button>
+                        </div>
+                    `;
                 });
-                document.getElementById('weeks').innerHTML = html;
+                html += '</div>';
             });
+            document.getElementById('weeks').innerHTML = html;
         }
 
-        function toggle(docentId, key) {
-            const maxUren = getMaxUren(docentId);
-            
-            window.database.ref(`users/${docentId}`).once('value', (snapshot) => {
-                const userData = snapshot.val() || {};
-                const docentInzetten = userData.inzetten || {};
-                const status = userData.status || { confirmed: false, changesLeft: 2 };
-                
-                if (status.confirmed && status.changesLeft === 0) {
-                    alert('❌ Je hebt geen wijzigingen meer over. Contact je beheerder.');
-                    return;
-                }
-
+        function toggleInzet(docentId, key) {
+            db.ref('inzetten/' + docentId).once('value', function(snapshot) {
+                let docentInzetten = snapshot.val() || {};
+                let maxUren = getMaxUren(docentId);
                 let totalHours = Object.keys(docentInzetten).length * 4;
 
                 if (docentInzetten[key]) {
@@ -367,95 +286,70 @@
                         return;
                     }
                     docentInzetten[key] = true;
-                    
-                    if (status.confirmed && status.changesLeft > 0) {
-                        status.changesLeft--;
-                    }
                 }
 
-                // Update in Firebase
-                window.database.ref(`users/${docentId}`).update({
-                    inzetten: docentInzetten,
-                    status: status
-                });
-
-                if (status.confirmed && status.changesLeft > 0) {
-                    status.confirmed = false;
-                    window.database.ref(`users/${docentId}/status`).set(status);
-                }
-
-                renderWeeks(docentId);
-                updateStats(docentId);
-                updateStatusBox(docentId);
+                db.ref('inzetten/' + docentId).set(docentInzetten);
             });
         }
 
-        function updateStats(docentId) {
-            window.database.ref(`users/${docentId}/inzetten`).once('value', (snapshot) => {
-                const docentInzetten = snapshot.val() || {};
-                const count = Object.keys(docentInzetten).length;
-                const hours = count * 4;
-                const maxUren = getMaxUren(docentId);
+        function updateStats(docentId, docentInzetten) {
+            let count = Object.keys(docentInzetten).length;
+            let hours = count * 4;
+            let maxUren = getMaxUren(docentId);
 
-                window.database.ref(`users/${docentId}/status`).once('value', (statusSnap) => {
-                    const status = statusSnap.val() || { confirmed: false, changesLeft: 2 };
-
-                    document.getElementById('totalDays').textContent = count;
-                    document.getElementById('totalHours').textContent = hours;
-                    document.getElementById('changes').textContent = status.changesLeft;
-                    document.getElementById('syncStatus').textContent = '✓';
-                    
-                    let confirmBtn = document.getElementById('confirmBtn');
-                    if (count > 0 && !status.confirmed) {
-                        confirmBtn.style.display = 'block';
-                    } else {
-                        confirmBtn.style.display = 'none';
-                    }
-                });
-            });
+            document.getElementById('totalDays').textContent = count;
+            document.getElementById('totalHours').textContent = hours;
+            
+            let confirmBtn = document.getElementById('confirmBtn');
+            if (count > 0) {
+                confirmBtn.style.display = 'block';
+            } else {
+                confirmBtn.style.display = 'none';
+            }
         }
 
-        function updateStatusBox(docentId) {
-            window.database.ref(`users/${docentId}/status`).once('value', (snapshot) => {
+        function loadStatus(docentId) {
+            db.ref('status/' + docentId).on('value', function(snapshot) {
                 const status = snapshot.val() || { confirmed: false, changesLeft: 2 };
-                const statusBox = document.getElementById('statusBox');
-                const statusText = document.getElementById('statusText');
-
-                if (status.confirmed) {
-                    statusBox.className = 'status-box confirmed';
-                    if (status.changesLeft === 0) {
-                        statusText.innerHTML = '✓ <strong>BEVESTIGD EN VERGRENDELD</strong><br>Je inzet is vastgesteld. Alleen de beheerder kan dit nog wijzigen.';
-                    } else {
-                        statusText.innerHTML = `✓ <strong>BEVESTIGD</strong><br>Je hebt nog <strong>${status.changesLeft}</strong> wijziging(en) over.`;
-                    }
-                    statusBox.style.display = 'block';
-                } else {
-                    statusBox.style.display = 'none';
-                }
+                updateStatusBox(docentId, status);
+                document.getElementById('changes').textContent = status.changesLeft;
             });
+        }
+
+        function updateStatusBox(docentId, status) {
+            let statusBox = document.getElementById('statusBox');
+            let statusText = document.getElementById('statusText');
+
+            if (status.confirmed) {
+                statusBox.className = 'status-box confirmed';
+                if (status.changesLeft === 0) {
+                    statusText.innerHTML = '✓ <strong>BEVESTIGD EN VERGRENDELD</strong><br>Je inzetting is vastgesteld. Alleen de beheerder kan dit nog wijzigen.';
+                } else {
+                    statusText.innerHTML = `✓ <strong>BEVESTIGD</strong><br>Je hebt nog <strong>${status.changesLeft}</strong> wijziging(en) over.`;
+                }
+                statusBox.style.display = 'block';
+            } else {
+                statusBox.style.display = 'none';
+            }
         }
 
         function confirmInzet() {
-            const id = document.getElementById('docentSelect').value;
-            window.database.ref(`users/${id}/status`).set({
+            let id = document.getElementById('docentSelect').value;
+            db.ref('status/' + id).set({
                 confirmed: true,
                 changesLeft: 2
             });
-            updateStats(id);
-            updateStatusBox(id);
-            alert('✓ Je inzet is bevestigd! Je hebt nog 2 keer de mogelijkheid om dit te wijzigen.');
+            alert('✓ Je inzetting is bevestigd! Je hebt nog 2 keer de mogelijkheid om dit te wijzigen.');
         }
 
         function resetInzet() {
             if (confirm('Wil je ALLE je inzetten verwijderen?')) {
-                const id = document.getElementById('docentSelect').value;
-                window.database.ref(`users/${id}`).set({
-                    inzetten: {},
-                    status: { confirmed: false, changesLeft: 2 }
+                let id = document.getElementById('docentSelect').value;
+                db.ref('inzetten/' + id).set({});
+                db.ref('status/' + id).set({
+                    confirmed: false,
+                    changesLeft: 2
                 });
-                renderWeeks(id);
-                updateStats(id);
-                updateStatusBox(id);
             }
         }
     </script>
