@@ -5,8 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📅 INTAKEWEKEN 12 JUNI-18 JULI 2026</title>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -83,7 +81,7 @@
                 1. Selecteer je naam in het dropdown menu<br>
                 2. Plan dagdelen in tot je aan de 40 uur bent<br>
                 3. Let op: Plan tenminste een aantal dagdelen in de <strong>laatste twee weken</strong> (week 6 & 7)<br>
-                4. Bevestig je inzetting wanneer je klaar bent
+                4. Bevestig je inzet wanneer je klaar bent
             </div>
         </div>
         
@@ -116,6 +114,7 @@
                 <option value="D23">Irene Bakker</option>
                 <option value="D24">Robert Reijns</option>
                 <option value="D25">Annie van der Velden</option>
+                <option value="D26">Leon Molijn</option>
             </select>
 
             <div id="content" style="display: none;">
@@ -150,7 +149,7 @@
                 <div class="weeks" id="weeks"></div>
 
                 <button id="confirmBtn" class="confirm-btn" onclick="confirmInzet()" style="display: none;">
-                    ✓ Bevestig mijn inzetting
+                    ✓ Bevestig mijn inzet
                 </button>
 
                 <button onclick="resetInzet()" style="width: 100%; padding: 12px; background: #FF6B6B; color: white; border: none; border-radius: 6px; font-weight: bold; margin-top: 20px; cursor: pointer;">🗑️ Wis alles</button>
@@ -353,5 +352,9 @@
             }
         }
     </script>
+
+    <!-- Firebase Scripts (moeten EERST geladen worden!) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
 </body>
 </html>
