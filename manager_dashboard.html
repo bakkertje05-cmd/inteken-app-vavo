@@ -4,447 +4,989 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎯 Manager Dashboard - INTAKEWEKEN 2026</title>
+    <title>🎯 Manager Dashboard - INTAKEWEKEN</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --brand-blue: #1F4E78;
+            --brand-purple: #667eea;
+            --brand-purple2: #764ba2;
+            --brand-green: #70AD47;
+            --brand-red: #FF6B6B;
+            --brand-yellow: #FFC000;
+            --bg: #f0f2f8;
+            --card: #ffffff;
+            --text: #1a1a2e;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+            --tab-active: #1F4E78;
+        }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
+            font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+            background: var(--bg);
             min-height: 100vh;
         }
-        .container { max-width: 1400px; margin: 0 auto; }
-        
-        .login-screen {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-        .login-box {
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            text-align: center;
-            max-width: 400px;
-        }
-        .login-box h1 { color: #1F4E78; margin-bottom: 20px; font-size: 24px; }
-        .login-box input {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 20px;
-            border: 2px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-            box-sizing: border-box;
-        }
-        .login-btn {
-            width: 100%;
-            padding: 12px;
-            background: #667eea;
+
+        /* ── HEADER ── */
+        .top-bar {
+            background: linear-gradient(135deg, var(--brand-blue) 0%, var(--brand-purple2) 100%);
+            padding: 24px 32px 0;
             color: white;
+        }
+        .top-bar-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .top-bar h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+        .top-bar p { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+
+        /* ── TABS ── */
+        .tab-nav {
+            display: flex;
+            gap: 4px;
+            margin-top: 20px;
+        }
+        .tab-btn {
+            padding: 10px 20px;
             border: none;
-            border-radius: 6px;
-            font-weight: bold;
+            background: rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.7);
+            border-radius: 8px 8px 0 0;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
             cursor: pointer;
-            font-size: 16px;
+            transition: all 0.2s;
         }
-        .login-btn:hover { background: #764ba2; }
-        .error-msg { color: #FF6B6B; margin-bottom: 20px; font-weight: bold; }
-        
-        .header {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            margin-bottom: 30px;
-            text-align: center;
+        .tab-btn:hover { background: rgba(255,255,255,0.25); color: white; transform: none; }
+        .tab-btn.active { background: var(--bg); color: var(--brand-blue); }
+
+        /* ── MAIN CONTENT ── */
+        .main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 28px 32px;
         }
-        .header h1 { color: #1F4E78; font-size: 28px; margin-bottom: 10px; }
-        .logout-btn { position: fixed; top: 20px; right: 20px; padding: 8px 16px; background: #FF6B6B; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; z-index: 999; }
-        .logout-btn:hover { background: #cc5555; }
-        
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* ── FIREBASE BANNER ── */
+        #firebaseBanner {
+            padding: 12px 18px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        #firebaseBanner.checking { background: #FFF3CD; border-left: 4px solid var(--brand-yellow); color: #7d5a00; }
+        #firebaseBanner.ok { background: #C6EFCE; border-left: 4px solid var(--brand-green); color: #1a5c1a; }
+        #firebaseBanner.error { background: #FFE5E5; border-left: 4px solid #FF4444; color: #8B0000; }
+        #firebaseBanner pre { background: #1e1e1e; color: #4EC9B0; padding: 10px 14px; border-radius: 6px; font-size: 12px; margin-top: 4px; white-space: pre-wrap; font-family: monospace; font-weight: normal; }
+
+        /* ── CARDS ── */
         .card {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            margin-bottom: 25px;
+            background: var(--card);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            padding: 24px;
+            margin-bottom: 24px;
         }
-        .card h2 { 
-            color: #1F4E78; 
-            margin-bottom: 20px; 
-            font-size: 18px; 
-            border-bottom: 2px solid #667eea; 
-            padding-bottom: 10px; 
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--brand-blue);
+            border-bottom: 2px solid #eef0f8;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
         }
-        .stats {
+
+        /* ── STAT CARDS ── */
+        .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
         }
         .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--brand-blue) 0%, var(--brand-purple2) 100%);
             color: white;
             padding: 20px;
-            border-radius: 8px;
+            border-radius: 10px;
             text-align: center;
         }
-        .stat-value { font-size: 28px; font-weight: bold; margin: 10px 0; }
-        .stat-label { font-size: 12px; opacity: 0.9; }
-        table { width: 100%; border-collapse: collapse; }
+        .stat-card .val { font-size: 30px; font-weight: 800; margin: 6px 0; }
+        .stat-card .lbl { font-size: 11px; opacity: 0.85; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* ── TABLE ── */
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
         th {
-            background: #203864;
+            background: var(--brand-blue);
             color: white;
-            padding: 12px;
+            padding: 12px 14px;
             text-align: left;
-            font-weight: bold;
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
         }
-        td { padding: 12px; border-bottom: 1px solid #e0e0e0; }
-        tr:hover { background: #f8f9fa; }
+        td { padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #f8f9ff; }
         .badge {
             display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: bold;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
         }
-        .badge-empty { background: #ccc; color: #666; }
-        .badge-partial { background: #FFF3CD; color: #333; }
-        .badge-complete { background: #C6EFCE; color: #070707; }
-        .progress-bar {
-            width: 100%;
-            height: 20px;
-            background: #e0e0e0;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            transition: width 0.3s;
-        }
-        .info-box {
-            background: #E2EFDA;
-            padding: 15px;
-            border-left: 4px solid #70AD47;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            color: #333;
-            font-size: 13px;
-        }
-        button {
-            padding: 12px 20px;
+        .badge-empty { background: #e5e7eb; color: #6b7280; }
+        .badge-partial { background: #FFF3CD; color: #7d5a00; }
+        .badge-complete { background: #C6EFCE; color: #1a5c1a; }
+        .badge-confirmed { background: var(--brand-green); color: white; }
+        .progress-bar { width: 100%; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; min-width: 80px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--brand-purple), var(--brand-purple2)); border-radius: 4px; transition: width 0.4s; }
+
+        /* ── ACTION BUTTONS in table ── */
+        .row-actions { display: flex; gap: 6px; }
+        .icon-btn {
+            padding: 5px 10px;
             border: none;
             border-radius: 6px;
-            font-weight: bold;
+            font-size: 13px;
             cursor: pointer;
-            transition: transform 0.2s;
+            font-weight: 600;
+            transition: opacity 0.2s;
         }
-        button:hover { transform: translateY(-2px); }
-        .btn-export { background: #70AD47; color: white; }
-        .btn-refresh { background: #667eea; color: white; }
+        .icon-btn:hover { opacity: 0.8; transform: none; }
+        .btn-calendar { background: #e8f0fe; color: var(--brand-blue); }
+        .btn-note { background: #FFF3CD; color: #7d5a00; }
+        .btn-note.has-note { background: #FFC000; color: white; }
+
+        /* ── MANAGER BUTTONS ── */
+        .manager-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+        .btn-export { background: var(--brand-green); color: white; padding: 11px 20px; border: none; border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
+        .btn-export:hover { opacity: 0.85; transform: none; }
+        .btn-refresh { background: #e8f0fe; color: var(--brand-blue); padding: 11px 20px; border: none; border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
+        .btn-refresh:hover { opacity: 0.8; transform: none; }
+
+        /* ── CHARTS TAB ── */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+        @media (max-width: 900px) { .charts-grid { grid-template-columns: 1fr; } }
+        .chart-container { position: relative; height: 300px; }
+        .chart-container-wide { position: relative; height: 380px; }
+
+        /* ── CALENDAR TAB ── */
+        .cal-select-wrap { margin-bottom: 20px; }
+        .cal-select-wrap label { font-size: 13px; font-weight: 700; color: var(--brand-blue); margin-bottom: 8px; display: block; }
+        .cal-select {
+            padding: 10px 14px; border: 2px solid var(--border); border-radius: 8px;
+            font-family: inherit; font-size: 14px; width: 320px; max-width: 100%;
+            background: white; color: var(--text);
+        }
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 12px;
+        }
+        @media (max-width: 1100px) { .cal-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 700px) { .cal-grid { grid-template-columns: repeat(2, 1fr); } }
+        .cal-week { background: #f8f9ff; border-radius: 10px; padding: 12px; border: 1px solid #e5e7eb; }
+        .cal-week-title { font-size: 11px; font-weight: 800; color: var(--brand-blue); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+        .cal-day { background: white; border-radius: 6px; padding: 8px; margin-bottom: 8px; border: 1px solid var(--border); }
+        .cal-day:last-child { margin-bottom: 0; }
+        .cal-day-header { font-size: 11px; font-weight: 700; color: var(--brand-blue); }
+        .cal-day-date { font-size: 10px; color: var(--muted); margin-bottom: 6px; }
+        .cal-slot {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-top: 4px;
+            text-align: center;
+        }
+        .cal-slot.selected { background: var(--brand-green); color: white; }
+        .cal-slot.empty { background: #f3f4f6; color: #9ca3af; }
+        .cal-empty-msg { text-align: center; color: var(--muted); font-size: 14px; padding: 40px; }
+        .cal-legend { display: flex; gap: 16px; margin-bottom: 16px; font-size: 12px; font-weight: 600; align-items: center; }
+        .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+
+        /* ── NOTITIES TAB ── */
+        .notities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+        }
+        .notitie-card {
+            background: #fafafa;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+        }
+        .notitie-card-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--brand-blue);
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .notitie-id { font-size: 11px; color: var(--muted); font-weight: 500; }
+        .notitie-textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 12px;
+            resize: vertical;
+            background: white;
+            transition: border-color 0.2s;
+        }
+        .notitie-textarea:focus { outline: none; border-color: var(--brand-purple); }
+        .notitie-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+        .notitie-saved { font-size: 11px; color: var(--brand-green); font-weight: 600; opacity: 0; transition: opacity 0.4s; }
+        .notitie-saved.show { opacity: 1; }
+        .btn-save-note {
+            padding: 6px 14px;
+            background: var(--brand-blue);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .btn-save-note:hover { opacity: 0.85; transform: none; }
+
+        /* ── MODAL ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal {
+            background: white;
+            border-radius: 12px;
+            padding: 28px;
+            max-width: 92vw;
+            width: 900px;
+            max-height: 88vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-title { font-size: 18px; font-weight: 800; color: var(--brand-blue); }
+        .modal-close {
+            width: 32px; height: 32px;
+            border: none; background: #f3f4f6;
+            border-radius: 6px; font-size: 18px;
+            cursor: pointer; line-height: 1; color: var(--muted);
+        }
+        .modal-close:hover { background: #e5e7eb; transform: none; }
+
+        /* ── INFO BOX ── */
+        .info-box {
+            background: #E2EFDA;
+            padding: 12px 16px;
+            border-left: 4px solid var(--brand-green);
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 12px;
+            color: #1a5c1a;
+            font-weight: 600;
+        }
+
+        /* ── STATS HEATMAP ── */
+        .week-heatmap {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            margin-top: 8px;
+        }
+        @media (max-width: 800px) { .week-heatmap { grid-template-columns: repeat(3, 1fr); } }
+        .heat-cell {
+            border-radius: 8px;
+            padding: 14px 10px;
+            text-align: center;
+            color: white;
+            font-weight: 700;
+        }
+        .heat-cell .heat-label { font-size: 11px; opacity: 0.9; margin-bottom: 4px; }
+        .heat-cell .heat-value { font-size: 22px; }
+        .heat-cell .heat-sub { font-size: 10px; opacity: 0.8; margin-top: 2px; }
+
+        button { font-family: 'Plus Jakarta Sans', inherit; }
     </style>
 </head>
 <body>
-    <div id="loginScreen" class="login-screen">
-        <div class="login-box">
-            <h1>🔐 Manager Dashboard</h1>
-            <p style="color: #666; margin-bottom: 20px;">Voer je inlogcode in</p>
-            <div id="errorMsg" class="error-msg" style="display: none;"></div>
-            <input id="passwordInput" type="password" placeholder="Inlogcode" onkeypress="handleKeyPress(event)">
-            <button class="login-btn" onclick="checkPassword()">Inloggen</button>
-        </div>
+
+<div class="top-bar">
+    <div class="top-bar-inner">
+        <h1>🎯 Manager Dashboard — INTAKEWEKEN</h1>
+        <p>Live monitoring beschikbaarheid docenten | 12 Juni – 18 Juli 2026</p>
+        <nav class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('overzicht')">📊 Overzicht</button>
+            <button class="tab-btn" onclick="switchTab('statistieken')">📈 Statistieken</button>
+            <button class="tab-btn" onclick="switchTab('kalender')">📅 Kalender</button>
+            <button class="tab-btn" onclick="switchTab('notities')">💬 Notities</button>
+        </nav>
     </div>
+</div>
 
-    <div id="dashboard" style="display: none;">
-        <button class="logout-btn" onclick="logout()">Uitloggen</button>
-        
-        <div class="container">
-            <div class="header">
-                <h1>🎯 Manager Dashboard - INTAKEWEKEN 2026</h1>
-                <p>Live monitoring beschikbaarheid docenten | 12 Juni - 17 Juli 2026</p>
-            </div>
+<div class="main">
 
-            <div class="card">
-                <h2>📊 Overzicht</h2>
-                <div class="stats" id="statsGrid"></div>
-                <div class="info-box">
-                    ✓ = Compleet | 📝 = Deels ingevuld
-                </div>
-            </div>
+    <div id="firebaseBanner" class="checking">⏳ Verbinding met Firebase wordt gecontroleerd...</div>
 
-            <div class="card">
-                <h2>👥 Beschikbaarheid Docenten</h2>
+    <!-- ════════════════════ TAB: OVERZICHT ════════════════════ -->
+    <div class="tab-panel active" id="tab-overzicht">
+
+        <div class="stats-grid" id="statsGrid"></div>
+
+        <div class="card">
+            <div class="card-title">👥 Beschikbaarheid Docenten</div>
+            <div class="info-box">✓ = Bevestigd &nbsp;|&nbsp; 📝 = In afwachting &nbsp;|&nbsp; 🔒 = Vergrendeld (manager-only) &nbsp;|&nbsp; Klik op 📅 voor kalender, 💬 voor notitie</div>
+            <div class="table-wrap">
                 <table>
                     <thead>
                         <tr>
                             <th>Docent</th>
-                            <th>Slots</th>
+                            <th>Dagdelen</th>
                             <th>Uren</th>
                             <th>Voortgang</th>
                             <th>Status</th>
+                            <th>Wijzigingen</th>
+                            <th>Acties</th>
                         </tr>
                     </thead>
                     <tbody id="docentBody"></tbody>
                 </table>
             </div>
+        </div>
 
-            <div class="card">
-                <h2>⚙️ Manager Functies</h2>
+        <div class="card">
+            <div class="card-title">⚙️ Manager Functies</div>
+            <div class="manager-btns">
                 <button class="btn-export" onclick="exportData()">📥 Export naar CSV</button>
                 <button class="btn-refresh" onclick="location.reload()">🔄 Vernieuwen</button>
             </div>
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
+    <!-- ════════════════════ TAB: STATISTIEKEN ════════════════════ -->
+    <div class="tab-panel" id="tab-statistieken">
 
-    <script>
-        let db = null;
-        let firebaseReady = false;
+        <div class="card">
+            <div class="card-title">🔥 Bezetting per Week — totaal ingeplande dagdelen</div>
+            <div class="week-heatmap" id="weekHeatmap"></div>
+        </div>
 
-        function waitForFirebase() {
-            return new Promise((resolve) => {
-                const check = () => {
-                    if (typeof firebase !== 'undefined') {
-                        const firebaseConfig = {
-                            apiKey: "AIzaSyBSEJIdGx0jhySaF73vWxEjvFezOUr0P10",
-                            authDomain: "intake-app-2026.firebaseapp.com",
-                            databaseURL: "https://intake-app-2026-default-rtdb.europe-west1.firebasedatabase.app",
-                            projectId: "intake-app-2026",
-                            storageBucket: "intake-app-2026.firebasestorage.app",
-                            messagingSenderId: "387454682734",
-                            appId: "1:387454682734:web:bb28e5136ab1891bc7887f"
-                        };
+        <div class="charts-grid">
+            <div class="card">
+                <div class="card-title">📊 Bezettingsgraad per Week (%)</div>
+                <div class="chart-container">
+                    <canvas id="weekChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">🍩 Verdeling Status Docenten</div>
+                <div class="chart-container">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
 
-                        if (!firebase.apps.length) {
-                            firebase.initializeApp(firebaseConfig);
-                        }
-                        db = firebase.database();
-                        firebaseReady = true;
-                        resolve();
-                    } else {
-                        setTimeout(check, 100);
-                    }
-                };
-                check();
-            });
+        <div class="card">
+            <div class="card-title">📋 Uren per Docent</div>
+            <div class="chart-container-wide">
+                <canvas id="docentChart"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ════════════════════ TAB: KALENDER ════════════════════ -->
+    <div class="tab-panel" id="tab-kalender">
+        <div class="card">
+            <div class="card-title">📅 Kalenderoverzicht per Docent</div>
+            <div class="cal-select-wrap">
+                <label>Selecteer een docent:</label>
+                <select class="cal-select" id="calDocentSelect" onchange="renderCalendar()">
+                    <option value="">-- Kies een docent --</option>
+                </select>
+            </div>
+            <div class="cal-legend">
+                <div class="legend-dot" style="background:var(--brand-green)"></div> Ingepland
+                <div class="legend-dot" style="background:#f3f4f6; border:1px solid #ddd"></div> Vrij
+            </div>
+            <div id="calContent">
+                <div class="cal-empty-msg">👆 Selecteer een docent om de kalender te zien</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════ TAB: NOTITIES ════════════════════ -->
+    <div class="tab-panel" id="tab-notities">
+        <div class="card">
+            <div class="card-title">💬 Notities per Docent</div>
+            <p style="font-size:13px; color:var(--muted); margin-bottom:20px;">Voeg aantekeningen toe per docent. Notities worden live opgeslagen in Firebase en zijn alleen zichtbaar in dit dashboard.</p>
+            <div class="notities-grid" id="notitiesGrid"></div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ════════════════════ MODAL: KALENDAR DETAIL ════════════════════ -->
+<div class="modal-overlay" id="calModal">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title" id="modalTitle">📅 Kalender</div>
+            <button class="modal-close" onclick="closeModal()">×</button>
+        </div>
+        <div id="modalContent"></div>
+    </div>
+</div>
+
+<!-- Firebase Compat SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+<script>
+window.addEventListener('load', function () {
+
+    // ── Firebase Config (ongewijzigd) ──────────────────────────────────
+    const firebaseConfig = {
+        apiKey: "AIzaSyBSEJIdGx0jhySaF73vWxEjvFezOUr0P10",
+        authDomain: "intake-app-2026.firebaseapp.com",
+        databaseURL: "https://intake-app-2026-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "intake-app-2026",
+        storageBucket: "intake-app-2026.firebasestorage.app",
+        messagingSenderId: "387454682734",
+        appId: "1:387454682734:web:bb28e5136ab1891bc7887f"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // ── Firebase verbindingstest ──────────────────────────────────────
+    const banner = document.getElementById('firebaseBanner');
+    db.ref('.info/connected').on('value', function(snap) {
+        if (snap.val() === true) {
+            db.ref('_connection_test').set({ ts: Date.now() })
+              .then(() => {
+                db.ref('_connection_test').remove();
+                banner.className = 'ok';
+                banner.innerHTML = '✅ Firebase verbonden — lezen & schrijven werkt correct.';
+              })
+              .catch(err => {
+                banner.className = 'error';
+                banner.innerHTML = `❌ <strong>Firebase verbonden maar schrijven geblokkeerd (Permission denied)</strong><br>
+                  <span style="font-weight:normal">Open <strong>Firebase Console → Realtime Database → Rules</strong> en vervang door:</span>
+                  <pre>{\n  "rules": {\n    ".read": true,\n    ".write": true\n  }\n}</pre>`;
+              });
+        } else {
+            banner.className = 'error';
+            banner.innerHTML = '🔴 <strong>Geen verbinding met Firebase.</strong> Controleer internetverbinding.';
         }
+    });
 
-        // Maak Firebase klaar
-        waitForFirebase();
+    // ── Data ──────────────────────────────────────────────────────────
+    const docenten = [
+        { id:'D01', naam:'Hendrikje Balkenende' },{ id:'D02', naam:'Rosanne Bartels' },
+        { id:'D03', naam:'Bea Blumenstein' },     { id:'D04', naam:'Jochem Borst' },
+        { id:'D05', naam:'Ineke Braam' },          { id:'D06', naam:'Hans Brunt' },
+        { id:'D07', naam:'Judith van der Griendt'},{ id:'D08', naam:'Helen Hilgeman' },
+        { id:'D09', naam:'Christiaan Hoekstra' }, { id:'D10', naam:'Marieke Meesters' },
+        { id:'D11', naam:'Liekie Nipius' },        { id:'D12', naam:'Zeliha Özmen' },
+        { id:'D13', naam:'Zeliha Yilman' },        { id:'D14', naam:'Esma Yüzgec' },
+        { id:'D15', naam:'Eveline van de Pool' },  { id:'D16', naam:'Vivian van de Wal' },
+        { id:'D17', naam:'Lisa Vos' },             { id:'D18', naam:'Franka de Bruijn' },
+        { id:'D19', naam:'Niels Lodewijk' },       { id:'D20', naam:'Anass Sbai' },
+        { id:'D21', naam:'Dilan Tsusiz' },         { id:'D22', naam:'Heba Sharaawy' },
+        { id:'D23', naam:'Irene Bakker' },         { id:'D24', naam:'Robert Reijns' },
+        { id:'D25', naam:'Leon Molijn' }
+    ];
 
-        const MANAGER_PASSWORD = "1234";
+    const weeks = [
+        { week:1, label:'Week 1', sublabel:'12 jun', start:new Date(2026,5,12), numDays:1 },
+        { week:2, label:'Week 2', sublabel:'15–19 jun', start:new Date(2026,5,15), numDays:5 },
+        { week:3, label:'Week 3', sublabel:'22–26 jun', start:new Date(2026,5,22), numDays:5 },
+        { week:4, label:'Week 4', sublabel:'29 jun – 3 jul', start:new Date(2026,5,29), numDays:5 },
+        { week:5, label:'Week 5', sublabel:'6–10 jul', start:new Date(2026,6,6),  numDays:5 },
+        { week:6, label:'Week 6', sublabel:'13–17 jul', start:new Date(2026,6,13), numDays:5 },
+    ];
 
-        const docenten = [
-            { id: 'D01', naam: 'Hendrikje Balkenende' },
-            { id: 'D02', naam: 'Rosanne Bartels' },
-            { id: 'D03', naam: 'Bea Blumenstein' },
-            { id: 'D04', naam: 'Jochem Borst', max: 60 },
-            { id: 'D05', naam: 'Ineke Braam', max: 60 },
-            { id: 'D06', naam: 'Hans Brunt' },
-            { id: 'D07', naam: 'Judith van der Griendt' },
-            { id: 'D08', naam: 'Helen Hilgeman' },
-            { id: 'D09', naam: 'Christiaan Hoekstra', max: 60 },
-            { id: 'D10', naam: 'Marieke Meesters' },
-            { id: 'D11', naam: 'Liekie Nipius' },
-            { id: 'D12', naam: 'Zeliha Özmen' },
-            { id: 'D13', naam: 'Zeliha Yilman' },
-            { id: 'D14', naam: 'Esma Yüzgec' },
-            { id: 'D15', naam: 'Eveline van de Pool' },
-            { id: 'D16', naam: 'Vivian van de Wal' },
-            { id: 'D17', naam: 'Lisa Vos' },
-            { id: 'D18', naam: 'Franka de Bruijn' },
-            { id: 'D19', naam: 'Niels Lodewijk' },
-            { id: 'D20', naam: 'Anass Sbai' },
-            { id: 'D21', naam: 'Dilan Tsusiz' },
-            { id: 'D22', naam: 'Heba Sharaawy' },
-            { id: 'D23', naam: 'Irene Bakker' },
-            { id: 'D24', naam: 'Robert Reijns' },
-            { id: 'D25', naam: 'Leon Molijn' }
+    const dayNames = ['Zo','Ma','Di','Wo','Do','Vr','Za'];
+    const months = ['jan','feb','mrt','apr','mei','jun','jul'];
+    const MAX_UREN = 40;
+
+    function formatDate(d) { return d.getDate() + ' ' + months[d.getMonth()]; }
+    function getDates(start, numDays) {
+        let out = [];
+        for (let i=0; i<numDays; i++) {
+            let d = new Date(start);
+            d.setDate(d.getDate()+i);
+            out.push(d);
+        }
+        return out;
+    }
+
+    // ── Globale state (gevuld door Firebase listeners) ─────────────────
+    let _allInzetten = {};
+    let _allStatus = {};
+    let _allNotities = {};
+    let _weekChart = null;
+    let _statusChart = null;
+    let _docentChart = null;
+
+    // ── TAB SWITCHING ─────────────────────────────────────────────────
+    window.switchTab = function(name) {
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + name).classList.add('active');
+        event.currentTarget.classList.add('active');
+        if (name === 'statistieken') updateCharts();
+    };
+
+    // ── MAIN DASHBOARD LISTENER ───────────────────────────────────────
+    function updateDashboard() {
+        db.ref('inzetten').on('value', function(snapshot) {
+            _allInzetten = snapshot.val() || {};
+            db.ref('status').once('value', function(statusSnap) {
+                _allStatus = statusSnap.val() || {};
+                updateStatCards();
+                updateTable();
+                updateWeekHeatmap();
+            });
+        });
+
+        db.ref('status').on('value', function(snap) {
+            _allStatus = snap.val() || {};
+        });
+
+        // Notities listener (nieuw Firebase pad - stoort bestaande communicatie NIET)
+        db.ref('notities').on('value', function(snap) {
+            _allNotities = snap.val() || {};
+            renderNotities();
+            refreshNoteButtons();
+        });
+    }
+
+    // ── STAT CARDS ────────────────────────────────────────────────────
+    function updateStatCards() {
+        let totalDagdelen = 0, inzetCount = 0, bevestigdCount = 0, completCount = 0;
+        docenten.forEach(doc => {
+            const inzetten = _allInzetten[doc.id] || {};
+            const dagdelen = Object.keys(inzetten).length;
+            const uren = dagdelen * 4;
+            if (dagdelen > 0) inzetCount++;
+            if (uren >= MAX_UREN) completCount++;
+            totalDagdelen += dagdelen;
+            if (_allStatus[doc.id]?.confirmed) bevestigdCount++;
+        });
+
+        document.getElementById('statsGrid').innerHTML = `
+            <div class="stat-card"><div class="lbl">Docenten Ingezet</div><div class="val">${inzetCount}/${docenten.length}</div></div>
+            <div class="stat-card"><div class="lbl">Bevestigd</div><div class="val">${bevestigdCount}</div></div>
+            <div class="stat-card"><div class="lbl">Compleet (40u)</div><div class="val">${completCount}</div></div>
+            <div class="stat-card"><div class="lbl">Totale Dagdelen</div><div class="val">${totalDagdelen}</div></div>
+            <div class="stat-card"><div class="lbl">Totale Uren</div><div class="val">${totalDagdelen*4}u</div></div>
+        `;
+    }
+
+    // ── TABLE ─────────────────────────────────────────────────────────
+    function updateTable() {
+        const tbody = document.getElementById('docentBody');
+        tbody.innerHTML = '';
+        docenten.forEach(doc => {
+            const inzetten = _allInzetten[doc.id] || {};
+            const dagdelen = Object.keys(inzetten).length;
+            const uren = dagdelen * 4;
+            const pct = Math.round((uren / MAX_UREN) * 100);
+            const status = _allStatus[doc.id] || { confirmed:false, changesLeft:2 };
+            const hasNote = !!(_allNotities[doc.id]?.tekst?.trim());
+
+            let badge = dagdelen === 0
+                ? '<span class="badge badge-empty">Niet ingezet</span>'
+                : uren < MAX_UREN
+                    ? '<span class="badge badge-partial">Deels</span>'
+                    : '<span class="badge badge-complete">Compleet ✓</span>';
+            if (status.confirmed) badge += ' <span class="badge badge-confirmed">✓ Bevestigd</span>';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>${doc.naam}</strong></td>
+                <td>${dagdelen}</td>
+                <td>${uren}/${MAX_UREN}u</td>
+                <td>
+                    <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(100,pct)}%"></div></div>
+                    <small style="font-size:11px;color:var(--muted)">${pct}%</small>
+                </td>
+                <td>${badge}</td>
+                <td>${status.changesLeft}</td>
+                <td>
+                    <div class="row-actions">
+                        <button class="icon-btn btn-calendar" onclick="openCalendarModal('${doc.id}','${doc.naam}')">📅 Kalender</button>
+                        <button class="icon-btn btn-note ${hasNote?'has-note':''}" id="notebtn-${doc.id}" onclick="goToNote('${doc.id}')">💬 ${hasNote?'Notitie ✓':'Notitie'}</button>
+                    </div>
+                </td>`;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function refreshNoteButtons() {
+        docenten.forEach(doc => {
+            const btn = document.getElementById('notebtn-'+doc.id);
+            if (!btn) return;
+            const hasNote = !!(_allNotities[doc.id]?.tekst?.trim());
+            btn.className = 'icon-btn btn-note ' + (hasNote ? 'has-note' : '');
+            btn.textContent = '💬 ' + (hasNote ? 'Notitie ✓' : 'Notitie');
+        });
+    }
+
+    // ── WEEK HEATMAP ──────────────────────────────────────────────────
+    function updateWeekHeatmap() {
+        const weekCounts = computeWeekCounts();
+        const weekMax = [2, 10, 10, 10, 10, 10]; // slots per week (1 dag of 5 dagen × 2)
+        const totalMax = weekMax.map(m => m * docenten.length);
+
+        const colors = [
+            ['#a8d5e2','#1a2a6c'],['#7db8d8','#1F4E78'],
+            ['#667eea','#2d1b69'],['#764ba2','#1a0533'],
+            ['#5a4fcf','#0d0a2e'],['#4338ca','#0a0720']
         ];
 
-        function checkPassword() {
-            const password = document.getElementById('passwordInput').value;
-            if (password === MANAGER_PASSWORD) {
-                sessionStorage.setItem('managerLoggedIn', 'true');
-                showDashboard();
-            } else {
-                document.getElementById('errorMsg').style.display = 'block';
-                document.getElementById('errorMsg').textContent = '❌ Inlogcode onjuist!';
-                document.getElementById('passwordInput').value = '';
-            }
-        }
+        document.getElementById('weekHeatmap').innerHTML = weeks.map((w,i) => {
+            const count = weekCounts[i];
+            const pct = Math.round((count / totalMax[i]) * 100);
+            const [bg1, bg2] = colors[i];
+            return `
+                <div class="heat-cell" style="background:linear-gradient(135deg,${bg1},${bg2})">
+                    <div class="heat-label">${w.label}</div>
+                    <div class="heat-value">${count}</div>
+                    <div class="heat-sub">${w.sublabel}</div>
+                    <div class="heat-sub" style="margin-top:4px">${pct}% bezet</div>
+                </div>`;
+        }).join('');
+    }
 
-        function handleKeyPress(e) {
-            if (e.key === 'Enter') {
-                checkPassword();
-            }
-        }
-
-        function logout() {
-            sessionStorage.removeItem('managerLoggedIn');
-            location.reload();
-        }
-
-        function showDashboard() {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'block';
-            
-            // Wacht tot Firebase klaar is VOORDAT dashboard start
-            waitForFirebase().then(() => {
-                startDashboard();
-            });
-        }
-
-        function getMaxUren(docentId) {
-            const doc = docenten.find(d => d.id === docentId);
-            return doc && doc.max ? doc.max : 40;
-        }
-
-        function getTotalHours(docentId, inzetten) {
-            let hours = 0;
+    function computeWeekCounts() {
+        const counts = [0,0,0,0,0,0];
+        Object.values(_allInzetten).forEach(inzetten => {
+            if (!inzetten) return;
             Object.keys(inzetten).forEach(key => {
-                if (key.includes(`${docentId}-W`)) {
-                    if (key.endsWith('-O')) hours += 2;
-                    if (key.endsWith('-M')) hours += 3;
+                const m = key.match(/^W(\d+)-/);
+                if (m) { const wi = parseInt(m[1])-1; if (wi>=0&&wi<6) counts[wi]++; }
+            });
+        });
+        return counts;
+    }
+
+    // ── CHARTS ────────────────────────────────────────────────────────
+    function updateCharts() {
+        updateWeekChart();
+        updateStatusChart();
+        updateDocentChart();
+    }
+
+    function updateWeekChart() {
+        const weekCounts = computeWeekCounts();
+        const weekMax = [2,10,10,10,10,10].map(m => m * docenten.length);
+        const pcts = weekCounts.map((c,i) => Math.round((c/weekMax[i])*100));
+        const labels = weeks.map(w => w.label + '\n' + w.sublabel);
+
+        if (_weekChart) {
+            _weekChart.data.datasets[0].data = pcts;
+            _weekChart.update();
+            return;
+        }
+        const ctx = document.getElementById('weekChart').getContext('2d');
+        _weekChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: weeks.map(w => [w.label, w.sublabel]),
+                datasets: [{
+                    label: 'Bezettingsgraad (%)',
+                    data: pcts,
+                    backgroundColor: ['#a8d5e2','#7db8d8','#667eea','#764ba2','#5a4fcf','#4338ca'],
+                    borderRadius: 6,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero:true, max:100, ticks:{ callback: v=>v+'%', font:{family:'Plus Jakarta Sans'} }, grid:{color:'#f0f0f0'} },
+                    x: { grid:{display:false}, ticks:{ font:{family:'Plus Jakarta Sans',size:11} } }
+                },
+                plugins: {
+                    legend:{display:false},
+                    tooltip:{ callbacks:{ label: ctx => ctx.parsed.y + '% bezet' } }
                 }
-            });
-            return hours;
-        }
-
-        function countSlots(docentId, inzetten) {
-            return Object.keys(inzetten).filter(key => key.includes(`${docentId}-W`)).length;
-        }
-
-        function updateStats(allInzetten) {
-            let totalDocenten = 0;
-            let totalUren = 0;
-            let totalSlots = 0;
-
-            docenten.forEach(doc => {
-                const inzetten = allInzetten[doc.id] || {};
-                const hours = getTotalHours(doc.id, inzetten);
-                const slots = countSlots(doc.id, inzetten);
-                if (hours > 0) {
-                    totalDocenten++;
-                    totalUren += hours;
-                    totalSlots += slots;
-                }
-            });
-
-            const statsGrid = document.getElementById('statsGrid');
-            statsGrid.innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-label">Docenten Ingezet</div>
-                    <div class="stat-value">${totalDocenten}/25</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Totale Slots</div>
-                    <div class="stat-value">${totalSlots}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Totale Uren</div>
-                    <div class="stat-value">${totalUren}u</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Voortgang</div>
-                    <div class="stat-value">${totalDocenten > 0 ? Math.round((totalDocenten / 25) * 100) : 0}%</div>
-                </div>
-            `;
-        }
-
-        function updateTable(allInzetten) {
-            const tbody = document.getElementById('docentBody');
-            tbody.innerHTML = '';
-
-            docenten.forEach(doc => {
-                const inzetten = allInzetten[doc.id] || {};
-                const slots = countSlots(doc.id, inzetten);
-                const uren = getTotalHours(doc.id, inzetten);
-                const maxUren = getMaxUren(doc.id);
-                const percentage = maxUren > 0 ? Math.round((uren / maxUren) * 100) : 0;
-
-                let statusBadge = '';
-                if (uren === 0) {
-                    statusBadge = '<span class="badge badge-empty">Niet ingezet</span>';
-                } else if (uren < maxUren) {
-                    statusBadge = '<span class="badge badge-partial">Deels (' + (maxUren - uren) + 'u nog)</span>';
-                } else {
-                    statusBadge = '<span class="badge badge-complete">Compleet ✓</span>';
-                }
-
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td><strong>${doc.naam}</strong></td>
-                    <td>${slots}</td>
-                    <td>${uren}/${maxUren}u</td>
-                    <td>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${Math.min(100, percentage)}%"></div>
-                        </div>
-                        <small>${percentage}%</small>
-                    </td>
-                    <td>${statusBadge}</td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        function exportData() {
-            db.ref('inzetten').once('value').then(snapshot => {
-                const allInzetten = snapshot.val() || {};
-                let csv = 'Docent,Slots,Uren,Max Uren,Percentage\n';
-
-                docenten.forEach(doc => {
-                    const inzetten = allInzetten[doc.id] || {};
-                    const slots = countSlots(doc.id, inzetten);
-                    const uren = getTotalHours(doc.id, inzetten);
-                    const maxUren = getMaxUren(doc.id);
-                    const percentage = maxUren > 0 ? Math.round((uren / maxUren) * 100) : 0;
-                    
-                    csv += `${doc.naam},${slots},${uren},${maxUren},${percentage}%\n`;
-                });
-
-                const blob = new Blob([csv], { type: 'text/csv' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'intaken_beschikbaarheid.csv';
-                a.click();
-            });
-        }
-
-        function startDashboard() {
-            // Update elke 2 seconden
-            setInterval(() => {
-                db.ref('inzetten').once('value').then(snapshot => {
-                    const allInzetten = snapshot.val() || {};
-                    updateStats(allInzetten);
-                    updateTable(allInzetten);
-                });
-            }, 2000);
-
-            // Eerste update meteen
-            db.ref('inzetten').once('value').then(snapshot => {
-                const allInzetten = snapshot.val() || {};
-                updateStats(allInzetten);
-                updateTable(allInzetten);
-            });
-        }
-
-        window.onload = function() {
-            if (sessionStorage.getItem('managerLoggedIn') === 'true') {
-                showDashboard();
             }
-        };
-    </script>
+        });
+    }
+
+    function updateStatusChart() {
+        let niet=0, deels=0, compleet=0, bevestigd=0;
+        docenten.forEach(doc => {
+            const inzetten = _allInzetten[doc.id] || {};
+            const uren = Object.keys(inzetten).length * 4;
+            const status = _allStatus[doc.id] || {};
+            if (status.confirmed) bevestigd++;
+            else if (uren >= MAX_UREN) compleet++;
+            else if (uren > 0) deels++;
+            else niet++;
+        });
+        const data = [niet, deels, compleet, bevestigd];
+
+        if (_statusChart) {
+            _statusChart.data.datasets[0].data = data;
+            _statusChart.update();
+            return;
+        }
+        const ctx = document.getElementById('statusChart').getContext('2d');
+        _statusChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Niet ingezet','Deels','Compleet','Bevestigd'],
+                datasets: [{
+                    data,
+                    backgroundColor: ['#e5e7eb','#FFF3CD','#C6EFCE','#70AD47'],
+                    borderColor: ['#d1d5db','#FFC000','#70AD47','#5a8c39'],
+                    borderWidth: 2,
+                }]
+            },
+            options: {
+                responsive:true, maintainAspectRatio:false,
+                plugins: {
+                    legend:{ position:'bottom', labels:{ font:{family:'Plus Jakarta Sans',size:12}, padding:16 } },
+                    tooltip:{ callbacks:{ label: ctx => ctx.label + ': ' + ctx.parsed + ' docenten' } }
+                },
+                cutout: '62%'
+            }
+        });
+    }
+
+    function updateDocentChart() {
+        const labels = docenten.map(d => d.naam.split(' ')[0] + ' ' + (d.naam.split(' ').at(-1)));
+        const data = docenten.map(d => {
+            const inzetten = _allInzetten[d.id] || {};
+            return Object.keys(inzetten).length * 4;
+        });
+        const colors = data.map(v => {
+            if (v >= MAX_UREN) return '#70AD47';
+            if (v > 0) return '#667eea';
+            return '#e5e7eb';
+        });
+
+        if (_docentChart) {
+            _docentChart.data.datasets[0].data = data;
+            _docentChart.data.datasets[0].backgroundColor = colors;
+            _docentChart.update();
+            return;
+        }
+        const ctx = document.getElementById('docentChart').getContext('2d');
+        _docentChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Uren ingepland',
+                    data,
+                    backgroundColor: colors,
+                    borderRadius: 4,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive:true, maintainAspectRatio:false, indexAxis:'y',
+                scales: {
+                    x: { beginAtZero:true, max:MAX_UREN, ticks:{ callback:v=>v+'u', font:{family:'Plus Jakarta Sans',size:11} }, grid:{color:'#f0f0f0'} },
+                    y: { grid:{display:false}, ticks:{ font:{family:'Plus Jakarta Sans',size:11} } }
+                },
+                plugins: {
+                    legend:{display:false},
+                    tooltip:{ callbacks:{ label: ctx => ctx.parsed.x + ' uur ingepland' } }
+                }
+            }
+        });
+    }
+
+    // ── KALENDER ──────────────────────────────────────────────────────
+    function buildCalSelect() {
+        const sel = document.getElementById('calDocentSelect');
+        docenten.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d.id; opt.textContent = d.naam;
+            sel.appendChild(opt);
+        });
+    }
+
+    window.renderCalendar = function() {
+        const docentId = document.getElementById('calDocentSelect').value;
+        if (!docentId) {
+            document.getElementById('calContent').innerHTML = '<div class="cal-empty-msg">👆 Selecteer een docent om de kalender te zien</div>';
+            return;
+        }
+        const inzetten = _allInzetten[docentId] || {};
+        const naam = docenten.find(d=>d.id===docentId)?.naam || '';
+        document.getElementById('calContent').innerHTML = buildCalHTML(naam, inzetten);
+    };
+
+    function buildCalHTML(naam, inzetten) {
+        const dagdelen = Object.keys(inzetten).length;
+        const uren = dagdelen * 4;
+        let html = `<p style="font-size:13px;font-weight:700;color:var(--brand-blue);margin-bottom:16px">
+            ${naam} — ${dagdelen} dagdelen / ${uren} uur van de ${MAX_UREN}u
+        </p><div class="cal-grid">`;
+
+        weeks.forEach(w => {
+            const dates = getDates(w.start, w.numDays);
+            html += `<div class="cal-week"><div class="cal-week-title">${w.label}<br><span style="font-weight:500;font-size:10px;opacity:0.7">${w.sublabel}</span></div>`;
+            dates.forEach((date, i) => {
+                const oKey = `W${w.week}-D${i}-O`;
+                const mKey = `W${w.week}-D${i}-M`;
+                const oSel = !!inzetten[oKey];
+                const mSel = !!inzetten[mKey];
+                html += `
+                    <div class="cal-day">
+                        <div class="cal-day-header">${dayNames[date.getDay()]}</div>
+                        <div class="cal-day-date">${formatDate(date)}</div>
+                        <div class="cal-slot ${oSel?'selected':'empty'}">10:00–12:00 ${oSel?'✓':''}</div>
+                        <div class="cal-slot ${mSel?'selected':'empty'}">13:00–16:00 ${mSel?'✓':''}</div>
+                    </div>`;
+            });
+            html += '</div>';
+        });
+        return html + '</div>';
+    }
+
+    // ── CALENDAR MODAL (vanuit tabel) ─────────────────────────────────
+    window.openCalendarModal = function(docentId, naam) {
+        const inzetten = _allInzetten[docentId] || {};
+        document.getElementById('modalTitle').textContent = '📅 Kalender — ' + naam;
+        document.getElementById('modalContent').innerHTML = buildCalHTML(naam, inzetten);
+        document.getElementById('calModal').classList.add('open');
+    };
+
+    window.closeModal = function() {
+        document.getElementById('calModal').classList.remove('open');
+    };
+
+    document.getElementById('calModal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+
+    // ── NAAR NOTITIES TAB GAAN ────────────────────────────────────────
+    window.goToNote = function(docentId) {
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-notities').classList.add('active');
+        document.querySelectorAll('.tab-btn')[3].classList.add('active');
+        setTimeout(() => {
+            const el = document.getElementById('note-'+docentId);
+            if (el) el.scrollIntoView({ behavior:'smooth', block:'center' });
+        }, 100);
+    };
+
+    // ── NOTITIES ──────────────────────────────────────────────────────
+    function renderNotities() {
+        const grid = document.getElementById('notitiesGrid');
+        if (!grid) return;
+        // Bewaar cursor posities
+        const actief = document.activeElement?.id;
+        const actPos = document.activeElement?.selectionStart;
+
+        grid.innerHTML = docenten.map(doc => {
+            const notitie = _allNotities[doc.id]?.tekst || '';
+            const opgeslagen = _allNotities[doc.id]?.opgeslagen || '';
+            return `
+                <div class="notitie-card" id="note-${doc.id}">
+                    <div class="notitie-card-name">
+                        <span>${doc.naam}</span>
+                        <span class="notitie-id">${doc.id}</span>
+                    </div>
+                    <textarea class="notitie-textarea" id="textarea-${doc.id}" placeholder="Voeg een notitie toe voor ${doc.naam.split(' ')[0]}...">${notitie}</textarea>
+                    <div class="notitie-footer">
+                        <span class="notitie-saved ${opgeslagen?'show':''}" id="saved-${doc.id}">
+                            ${opgeslagen ? '✓ Opgeslagen ' + opgeslagen : ''}
+                        </span>
+                        <button class="btn-save-note" onclick="saveNote('${doc.id}')">💾 Opslaan</button>
+                    </div>
+                </div>`;
+        }).join('');
+
+        // Herstel focus
+        if (actief && actief.startsWith('textarea-')) {
+            const el = document.getElementById(actief);
+            if (el) { el.focus(); if(actPos!==undefined) el.setSelectionRange(actPos,actPos); }
+        }
+    }
+
+    window.saveNote = function(docentId) {
+        const tekst = document.getElementById('textarea-'+docentId)?.value || '';
+        const now = new Date();
+        const opgeslagen = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+        // Schrijft naar NIEUW Firebase pad 'notities' — raakt 'inzetten' of 'status' niet aan
+        db.ref('notities/'+docentId).set({ tekst, opgeslagen })
+          .then(() => {
+            const savedEl = document.getElementById('saved-'+docentId);
+            if (savedEl) {
+                savedEl.textContent = '✓ Opgeslagen ' + opgeslagen;
+                savedEl.classList.add('show');
+            }
+          });
+    };
+
+    // ── EXPORT CSV (bestaande functie, ongewijzigd) ───────────────────
+    window.exportData = function() {
+        Promise.all([
+            db.ref('inzetten').once('value'),
+            db.ref('status').once('value'),
+            db.ref('notities').once('value')
+        ]).then(([inzetSnap, statusSnap, notitiesSnap]) => {
+            const allI = inzetSnap.val() || {};
+            const allS = statusSnap.val() || {};
+            const allN = notitiesSnap.val() || {};
+            let csv = 'Docent,Dagdelen,Uren,Max Uren,Bevestigd,Wijzigingen Over,Notitie\n';
+            docenten.forEach(doc => {
+                const inzetten = allI[doc.id] || {};
+                const dagdelen = Object.keys(inzetten).length;
+                const status = allS[doc.id] || { confirmed:false, changesLeft:2 };
+                const notitie = (allN[doc.id]?.tekst || '').replace(/,/g,' ').replace(/\n/g,' ');
+                csv += `${doc.naam},${dagdelen},${dagdelen*4},${MAX_UREN},${status.confirmed?'Ja':'Nee'},${status.changesLeft},"${notitie}"\n`;
+            });
+            const blob = new Blob([csv], { type:'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'intaken_beschikbaarheid.csv'; a.click();
+        });
+    };
+
+    // ── START ─────────────────────────────────────────────────────────
+    buildCalSelect();
+    updateDashboard();
+
+}); // einde window.load
+</script>
 </body>
 </html>
