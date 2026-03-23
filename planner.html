@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📋 Planningstool — INTAKEWEKEN 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --brand-blue: #1F4E78; --brand-purple: #667eea; --brand-purple2: #764ba2;
+            --brand-green: #70AD47; --brand-red: #FF6B6B; --brand-yellow: #FFC000;
+            --brand-orange: #F97316; --bg: #f0f2f8; --card: #ffffff;
+            --text: #1a1a2e; --muted: #6b7280; --border: #e5e7eb;
+        }
+        body { font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif; background: var(--bg); min-height: 100vh; }
+        button { font-family: inherit; }
+
+        /* ── PASSWORD GATE ── */
+        .pw-overlay {
+            position: fixed; inset: 0;
+            background: linear-gradient(135deg, #1F4E78 0%, #764ba2 100%);
+            display: flex; align-items: center; justify-content: center; z-index: 9999;
+        }
+        .pw-box {
+            background: white; border-radius: 16px; padding: 44px 40px;
+            width: 420px; max-width: 92vw; text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+        }
+        .pw-icon { font-size: 52px; margin-bottom: 18px; }
+        .pw-box h2 { color: var(--brand-blue); font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+        .pw-box p { color: var(--muted); font-size: 13px; margin-bottom: 28px; line-height: 1.5; }
+        .pw-input {
+            width: 100%; padding: 14px 16px; border: 2px solid var(--border); border-radius: 8px;
+            font-family: inherit; font-size: 15px; text-align: center; letter-spacing: 3px;
+            margin-bottom: 14px; transition: border-color 0.2s;
+        }
+        .pw-input:focus { outline: none; border-color: var(--brand-purple); }
+        .pw-input.error { border-color: var(--brand-red); animation: shake 0.35s; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 30%{transform:translateX(-8px)} 70%{transform:translateX(8px)} }
+        .pw-btn {
+            width: 100%; padding: 14px; background: linear-gradient(135deg, var(--brand-blue), var(--brand-purple2));
+            color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer;
+        }
+        .pw-btn:hover { opacity: 0.9; }
+        .pw-error { color: var(--brand-red); font-size: 13px; margin-top: 12px; display: none; font-weight: 600; }
+
+        /* ── TOP BAR & TABS ── */
+        .top-bar { background: linear-gradient(135deg, var(--brand-blue) 0%, var(--brand-purple2) 100%); padding: 24px 32px 0; color: white; }
+        .top-bar-inner { max-width: 1440px; margin: 0 auto; }
+        .top-bar h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+        .top-bar p { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+        .tab-nav { display: flex; gap: 4px; margin-top: 20px; }
+        .tab-btn {
+            padding: 10px 22px; border: none; background: rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.75); border-radius: 8px 8px 0 0; font-family: inherit;
+            font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+        }
+        .tab-btn:hover { background: rgba(255,255,255,0.25); color: white; }
+        .tab-btn.active { background: var(--bg); color: var(--brand-blue); }
+
+        /* ── MAIN ── */
+        .main { max-width: 1440px; margin: 0 auto; padding: 28px 32px; }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* ── FIREBASE BANNER ── */
+        #firebaseBanner {
+            padding: 12px 18px; border-radius: 8px; margin-bottom: 24px;
+            font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px;
+        }
+        #firebaseBanner.checking { background: #FFF3CD; border-left: 4px solid var(--brand-yellow); color: #7d5a00; }
+        #firebaseBanner.ok { background: #C6EFCE; border-left: 4px solid var(--brand-green); color: #1a5c1a; }
+        #firebaseBanner.error { background: #FFE5E5; border-left: 4px solid #FF4444; color: #8B0000; }
+
+        /* ── CARDS ── */
+        .card { background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 24px; margin-bottom: 24px; }
+        .card-title { font-size: 16px; font-weight: 700; color: var(--brand-blue); border-bottom: 2px solid #eef0f8; padding-bottom: 12px; margin-bottom: 20px; }
+
+        /* ── STATS ── */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .stat-card { padding: 20px; border-radius: 10px; text-align: center; color: white; }
+        .stat-card.blue  { background: linear-gradient(135deg, var(--brand-blue), var(--brand-purple2)); }
+        .stat-card.green { background: linear-gradient(135deg, #16a34a, #4ade80); }
+        .stat-card.orange { background: linear-gradient(135deg, #ea580c, #f97316); }
+        .stat-card.gray  { background: linear-gradient(135deg, #4b5563, #9ca3af); }
+        .stat-card .val { font-size: 32px; font-weight: 800; margin: 6px 0; }
+        .stat-card .lbl { font-size: 11px; opacity: 0.88; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* ── STUDENT TAB ── */
+        .add-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-bottom: 16px; align-items: stretch; }
+        .add-input { padding: 11px 14px; border: 2px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 14px; transition: border-color 0.2s; }
+        .add-input:focus { outline: none; border-color: var(--brand-purple); }
+        .btn-primary { padding: 11px 20px; background: var(--brand-blue); color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+        .btn-primary:hover { opacity: 0.85; }
+        .bulk-area { width: 100%; min-height: 90px; padding: 10px 14px; border: 2px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 13px; resize: vertical; margin-bottom: 10px; transition: border-color 0.2s; }
+        .bulk-area:focus { outline: none; border-color: var(--brand-purple); }
+        .sep-label { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
+
+        /* FILTER BAR */
+        .filter-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .filter-btn { padding: 6px 16px; border: 2px solid var(--border); background: white; border-radius: 20px; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; color: var(--muted); transition: all 0.2s; }
+        .filter-btn:hover { border-color: var(--brand-blue); color: var(--brand-blue); }
+        .filter-btn.active { background: var(--brand-blue); color: white; border-color: var(--brand-blue); }
+
+        /* STUDENT LIST ITEMS */
+        .student-list { display: flex; flex-direction: column; gap: 8px; }
+        .student-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #f8f9ff; border-radius: 8px; border: 1px solid var(--border); }
+        .student-naam { flex: 1; font-size: 14px; font-weight: 600; color: var(--text); }
+        .student-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+        .badge-wacht  { background: #FFF3CD; color: #7d5a00; }
+        .badge-gepland { background: #C6EFCE; color: #1a5c1a; }
+        .btn-sm { padding: 4px 11px; border: none; border-radius: 6px; font-family: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
+        .btn-unassign { background: #FFF3CD; color: #7d5a00; }
+        .btn-unassign:hover { background: var(--brand-yellow); color: white; }
+        .btn-del { background: #FFE5E5; color: #dc2626; }
+        .btn-del:hover { background: var(--brand-red); color: white; }
+        .empty-msg { text-align: center; color: var(--muted); padding: 32px; font-size: 14px; }
+
+        /* ── PLANNING TAB ── */
+        .week-tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+        .week-tab { padding: 8px 18px; border: 2px solid var(--border); background: white; border-radius: 8px; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; color: var(--muted); transition: all 0.2s; }
+        .week-tab:hover { border-color: var(--brand-blue); color: var(--brand-blue); }
+        .week-tab.active { background: var(--brand-blue); color: white; border-color: var(--brand-blue); }
+
+        /* PLANNING TABLE */
+        .plan-table-wrap { overflow-x: auto; }
+        .plan-table { width: 100%; border-collapse: separate; border-spacing: 8px; }
+        .plan-th {
+            background: var(--brand-blue); color: white; padding: 10px 14px;
+            text-align: center; border-radius: 8px; font-size: 12px; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap;
+            min-width: 160px;
+        }
+        .plan-th-label {
+            background: #e8ebff; color: var(--brand-blue); padding: 10px 14px;
+            border-radius: 8px; font-size: 11px; font-weight: 800; text-align: center;
+            white-space: nowrap; min-width: 80px;
+        }
+        .plan-td { vertical-align: top; padding: 0; }
+        .plan-cell {
+            background: white; border-radius: 10px; padding: 10px;
+            border: 1px solid var(--border); min-height: 80px;
+        }
+        .plan-cell.ochtend { border-top: 3px solid var(--brand-purple); }
+        .plan-cell.middag  { border-top: 3px solid var(--brand-green); }
+
+        /* DOCENT SLOT MINI-CARD */
+        .docent-slot { background: #f8f9ff; border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; border: 1px solid #e0e4f8; }
+        .docent-slot:last-child { margin-bottom: 0; }
+        .docent-slot-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+        .docent-slot-name { font-size: 11px; font-weight: 800; color: var(--brand-blue); max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .cap-badge { font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 10px; }
+        .cap-ok   { background: #C6EFCE; color: #1a5c1a; }
+        .cap-warn { background: #FFF3CD; color: #7d5a00; }
+        .cap-full { background: #FFE5E5; color: #9C0006; }
+        .student-chips { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 6px; }
+        .chip {
+            display: flex; align-items: center; gap: 3px;
+            background: #dde8fe; color: var(--brand-blue); padding: 2px 8px;
+            border-radius: 10px; font-size: 9px; font-weight: 700;
+        }
+        .chip-x { cursor: pointer; opacity: 0.55; font-size: 10px; line-height: 1; margin-left: 1px; }
+        .chip-x:hover { opacity: 1; color: var(--brand-red); }
+        .btn-slot-add {
+            width: 100%; padding: 5px; border: 1.5px dashed var(--brand-purple);
+            background: white; color: var(--brand-purple); border-radius: 5px;
+            font-family: inherit; font-size: 10px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-slot-add:hover:not(:disabled) { background: var(--brand-purple); color: white; border-style: solid; }
+        .btn-slot-add:disabled { border-color: #d1d5db; color: #9ca3af; cursor: not-allowed; background: #f9fafb; }
+        .no-docenten { text-align: center; color: #c4c9d8; font-size: 11px; padding: 12px 0; font-style: italic; }
+
+        /* ── OVERZICHT TAB ── */
+        .ov-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        @media (max-width: 800px) { .ov-grid { grid-template-columns: 1fr; } }
+        .ov-col-title { font-size: 14px; font-weight: 800; color: var(--brand-blue); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+        .cnt-badge { padding: 3px 10px; border-radius: 12px; font-size: 11px; color: white; font-weight: 700; }
+        .cnt-green  { background: var(--brand-green); }
+        .cnt-orange { background: var(--brand-orange); }
+        .ov-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: white; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 7px; }
+        .ov-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .ov-dot.green  { background: var(--brand-green); }
+        .ov-dot.orange { background: var(--brand-orange); }
+        .ov-naam { flex: 1; font-size: 13px; font-weight: 600; color: var(--text); }
+        .ov-detail { font-size: 11px; color: var(--muted); }
+
+        /* ── MODAL ── */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; }
+        .modal-overlay.open { display: flex; }
+        .modal { background: white; border-radius: 14px; padding: 28px; width: 500px; max-width: 94vw; max-height: 84vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+        .modal-title { font-size: 18px; font-weight: 800; color: var(--brand-blue); }
+        .modal-close { width: 32px; height: 32px; border: none; background: #f3f4f6; border-radius: 7px; font-size: 18px; cursor: pointer; color: var(--muted); }
+        .modal-close:hover { background: #e5e7eb; }
+        .modal-ctx { background: #f0f4ff; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 12px; color: var(--brand-blue); font-weight: 600; line-height: 1.6; }
+        .m-search { width: 100%; padding: 10px 14px; border: 2px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 13px; margin-bottom: 12px; }
+        .m-search:focus { outline: none; border-color: var(--brand-purple); }
+        .pick-list { display: flex; flex-direction: column; gap: 6px; }
+        .pick-item {
+            display: flex; align-items: center; gap: 10px; padding: 11px 14px;
+            background: #f8f9ff; border-radius: 8px; cursor: pointer;
+            border: 1px solid var(--border); font-size: 13px; font-weight: 600;
+            transition: all 0.15s;
+        }
+        .pick-item:hover { background: var(--brand-blue); color: white; border-color: var(--brand-blue); }
+        .pick-empty { text-align: center; color: var(--muted); font-size: 13px; padding: 24px; }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 1000px) { .main { padding: 16px; } .top-bar { padding: 16px 16px 0; } }
+        @media (max-width: 600px) { .stats-grid { grid-template-columns: 1fr 1fr; } .tab-btn { padding: 8px 12px; font-size: 12px; } }
+    </style>
+</head>
+<body>
+
+<!-- ══ WACHTWOORD GATE ══ -->
+<div class="pw-overlay" id="pwOverlay">
+    <div class="pw-box">
+        <div class="pw-icon">🔐</div>
+        <h2>Planningstool</h2>
+        <p>Voer het wachtwoord in om studenten in te plannen voor de intakeweken 2026.</p>
+        <input type="password" class="pw-input" id="pwInput" placeholder="••••••••••"
+               onkeypress="if(event.key==='Enter') checkPassword()">
+        <button class="pw-btn" onclick="checkPassword()">Inloggen →</button>
+        <div class="pw-error" id="pwError">❌ Onjuist wachtwoord. Probeer opnieuw.</div>
+    </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app" style="display:none">
+
+<div class="top-bar">
+    <div class="top-bar-inner">
+        <h1>📋 Planningstool — INTAKEWEKEN 2026</h1>
+        <p>Studenten indelen in gespreksblokken &nbsp;·&nbsp; Ochtend (10–12u) max 5 gesprekken &nbsp;·&nbsp; Middag (13–16u) max 7 gesprekken</p>
+        <nav class="tab-nav">
+            <button class="tab-btn active" id="tabbtn-studenten" onclick="switchTab('studenten',this)">👥 Studentenlijst</button>
+            <button class="tab-btn" id="tabbtn-inplannen" onclick="switchTab('inplannen',this)">📆 Inplannen</button>
+            <button class="tab-btn" id="tabbtn-overzicht" onclick="switchTab('overzicht',this)">👁️ Overzicht</button>
+        </nav>
+    </div>
+</div>
+
+<div class="main">
+
+    <div id="firebaseBanner" class="checking">⏳ Verbinding met Firebase wordt gecontroleerd…</div>
+
+    <!-- ══════════ TAB: STUDENTENLIJST ══════════ -->
+    <div class="tab-panel active" id="tab-studenten">
+
+        <div class="stats-grid">
+            <div class="stat-card blue"><div class="val" id="st-totaal">0</div><div class="lbl">Totaal studenten</div></div>
+            <div class="stat-card green"><div class="val" id="st-gepland">0</div><div class="lbl">Ingepland</div></div>
+            <div class="stat-card orange"><div class="val" id="st-wacht">0</div><div class="lbl">Nog in te plannen</div></div>
+            <div class="stat-card gray"><div class="val" id="st-slots">0</div><div class="lbl">Vrije plaatsen</div></div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">➕ Student toevoegen</div>
+            <div class="add-row">
+                <input type="text" class="add-input" id="singleInput" placeholder="Naam student…"
+                       onkeypress="if(event.key==='Enter') addSingle()">
+                <button class="btn-primary" onclick="addSingle()">+ Toevoegen</button>
+            </div>
+            <div class="sep-label">Of plak meerdere namen (één per regel):</div>
+            <textarea class="bulk-area" id="bulkInput" placeholder="Jan de Vries&#10;Fatima El Amrani&#10;Pedro Castillo&#10;…"></textarea>
+            <button class="btn-primary" onclick="addBulk()">📋 Voeg alle namen toe</button>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📋 Studentenlijst</div>
+            <div class="filter-bar">
+                <button class="filter-btn active" id="fbtn-all"     onclick="setFilter('all',this)">Alle</button>
+                <button class="filter-btn"         id="fbtn-wacht"   onclick="setFilter('wacht',this)">🟠 Nog in te plannen</button>
+                <button class="filter-btn"         id="fbtn-gepland" onclick="setFilter('gepland',this)">🟢 Ingepland</button>
+            </div>
+            <div class="student-list" id="studentenLijst">
+                <div class="empty-msg">Nog geen studenten toegevoegd.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════ TAB: INPLANNEN ══════════ -->
+    <div class="tab-panel" id="tab-inplannen">
+        <div class="card">
+            <div class="card-title">📆 Inplannen per week</div>
+            <div class="week-tabs" id="weekTabs"></div>
+            <div class="plan-table-wrap" id="planningGrid">
+                <div class="empty-msg">Selecteer een week hierboven om te beginnen.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════ TAB: OVERZICHT ══════════ -->
+    <div class="tab-panel" id="tab-overzicht">
+        <div class="stats-grid">
+            <div class="stat-card blue"><div class="val" id="ov-tot">0</div><div class="lbl">Totaal</div></div>
+            <div class="stat-card green"><div class="val" id="ov-gep">0</div><div class="lbl">Ingepland</div></div>
+            <div class="stat-card orange"><div class="val" id="ov-wacht">0</div><div class="lbl">Nog in te plannen</div></div>
+            <div class="stat-card gray"><div class="val" id="ov-pct">0%</div><div class="lbl">Voortgang</div></div>
+        </div>
+        <div class="card">
+            <div class="card-title">👁️ Wie staat al ingepland?</div>
+            <div class="ov-grid">
+                <div>
+                    <div class="ov-col-title">🟠 Nog in te plannen <span class="cnt-badge cnt-orange" id="ov-wachtCnt">0</span></div>
+                    <div id="ov-wachtLijst"></div>
+                </div>
+                <div>
+                    <div class="ov-col-title">🟢 Ingepland <span class="cnt-badge cnt-green" id="ov-geplandCnt">0</span></div>
+                    <div id="ov-geplandLijst"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ══ MODAL: STUDENT KIEZEN ══ -->
+<div class="modal-overlay" id="assignModal">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title">👤 Student toewijzen</div>
+            <button class="modal-close" onclick="closeModal()">×</button>
+        </div>
+        <div class="modal-ctx" id="modalCtx"></div>
+        <input type="text" class="m-search" id="mSearch" placeholder="🔍 Zoek op naam…" oninput="filterPick()">
+        <div class="pick-list" id="pickList"></div>
+    </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════
+//  WACHTWOORD  — verander 'intake2026' naar eigen wachtwoord
+// ════════════════════════════════════════════
+const WACHTWOORD = 'intake2026';
+
+function checkPassword() {
+    const inp = document.getElementById('pwInput');
+    if (inp.value === WACHTWOORD) {
+        document.getElementById('pwOverlay').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+    } else {
+        inp.classList.add('error');
+        document.getElementById('pwError').style.display = 'block';
+        setTimeout(() => inp.classList.remove('error'), 400);
+        inp.value = '';
+        inp.focus();
+    }
+}
+
+// ════════════════════════════════════════════
+//  TABS
+// ════════════════════════════════════════════
+function switchTab(name, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    btn.classList.add('active');
+    if (name === 'overzicht') renderOverzicht();
+    if (name === 'inplannen' && _currentWeek) renderGrid();
+}
+
+// ════════════════════════════════════════════
+//  FIREBASE INIT
+// ════════════════════════════════════════════
+window.addEventListener('load', function () {
+
+const firebaseConfig = {
+    apiKey: "AIzaSyBSEJIdGx0jhySaF73vWxEjvFezOUr0P10",
+    authDomain: "intake-app-2026.firebaseapp.com",
+    databaseURL: "https://intake-app-2026-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "intake-app-2026",
+    storageBucket: "intake-app-2026.firebasestorage.app",
+    messagingSenderId: "387454682734",
+    appId: "1:387454682734:web:bb28e5136ab1891bc7887f"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// Verbindingstest
+const banner = document.getElementById('firebaseBanner');
+db.ref('.info/connected').on('value', snap => {
+    if (snap.val() === true) {
+        db.ref('_conn_planner').set({ ts: Date.now() })
+          .then(() => { db.ref('_conn_planner').remove(); banner.className = 'ok'; banner.innerHTML = '✅ Firebase verbonden — lezen & schrijven werkt.'; })
+          .catch(() => { banner.className = 'error'; banner.innerHTML = '❌ Verbonden maar schrijven geblokkeerd. Controleer Firebase Rules.'; });
+    } else {
+        banner.className = 'error'; banner.innerHTML = '🔴 Geen verbinding met Firebase.';
+    }
+});
+
+// ════════════════════════════════════════════
+//  CONSTANTEN
+// ════════════════════════════════════════════
+const MAX_O = 5;  // ochtend 10–12u
+const MAX_M = 7;  // middag  13–16u
+
+const docenten = [
+    { id:'D01', naam:'Hendrikje Balkenende' }, { id:'D02', naam:'Rosanne Bartels' },
+    { id:'D03', naam:'Bea Blumenstein' },       { id:'D04', naam:'Jochem Borst' },
+    { id:'D05', naam:'Ineke Braam' },           { id:'D06', naam:'Hans Brunt' },
+    { id:'D07', naam:'Judith van der Griendt' },{ id:'D08', naam:'Helen Hilgeman' },
+    { id:'D09', naam:'Christiaan Hoekstra' },   { id:'D10', naam:'Marieke Meesters' },
+    { id:'D11', naam:'Liekie Nipius' },         { id:'D12', naam:'Zeliha Özmen' },
+    { id:'D13', naam:'Zeliha Yilman' },         { id:'D14', naam:'Esma Yüzgec' },
+    { id:'D15', naam:'Eveline van de Pool' },   { id:'D16', naam:'Vivian van de Wal' },
+    { id:'D17', naam:'Lisa Vos' },              { id:'D18', naam:'Franka de Bruijn' },
+    { id:'D19', naam:'Niels Lodewijk' },        { id:'D20', naam:'Anass Sbai' },
+    { id:'D21', naam:'Dilan Tsusiz' },          { id:'D22', naam:'Heba Sharaawy' },
+    { id:'D23', naam:'Irene Bakker' },          { id:'D24', naam:'Robert Reijns' },
+    { id:'D25', naam:'Annie van der Velden' },
+];
+
+const weeks = [
+    { week:1, label:'Week 1', start: new Date(2026,5,10) },
+    { week:2, label:'Week 2', start: new Date(2026,5,17) },
+    { week:3, label:'Week 3', start: new Date(2026,5,24) },
+    { week:4, label:'Week 4', start: new Date(2026,6,1)  },
+    { week:5, label:'Week 5', start: new Date(2026,6,8)  },
+    { week:6, label:'Week 6', start: new Date(2026,6,15) },
+    { week:7, label:'Week 7', start: new Date(2026,6,22) },
+];
+const dagNamen  = ['Ma','Di','Wo','Do','Vr'];
+const maandNamen = ['jan','feb','mrt','apr','mei','jun','jul'];
+
+function formatDate(d) { return d.getDate() + ' ' + maandNamen[d.getMonth()]; }
+function getDates(start) {
+    let arr = [];
+    for (let i = 0; i < 5; i++) { let d = new Date(start); d.setDate(d.getDate()+i); arr.push(d); }
+    return arr;
+}
+
+// ════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════
+let _inzetten  = {};  // {docentId: {slotKey: true}}
+let _studenten = {};  // {pushId: {naam, ingepland, docentId, slotKey}}
+let _planning  = {};  // {docentId: {slotKey: {pushId: naam}}}
+let _filter    = 'all';
+let _currentWeek = 1;
+
+// Modal state
+let _modalDocentId   = null;
+let _modalSlotKey    = null;
+
+// ════════════════════════════════════════════
+//  FIREBASE LISTENERS
+// ════════════════════════════════════════════
+db.ref('inzetten').on('value', snap => {
+    _inzetten = snap.val() || {};
+    refreshAll();
+});
+db.ref('studenten').on('value', snap => {
+    _studenten = snap.val() || {};
+    refreshAll();
+});
+db.ref('planning').on('value', snap => {
+    _planning = snap.val() || {};
+    refreshAll();
+});
+
+function refreshAll() {
+    updateStats();
+    renderStudentenLijst();
+    if (_currentWeek) renderGrid();
+    // Overzicht only if tab is active
+    if (document.getElementById('tab-overzicht').classList.contains('active')) renderOverzicht();
+}
+
+// ════════════════════════════════════════════
+//  STATS
+// ════════════════════════════════════════════
+function updateStats() {
+    const arr = Object.values(_studenten);
+    const tot = arr.length;
+    const gep = arr.filter(s => s.ingepland).length;
+    const wacht = tot - gep;
+
+    // Bereken vrije plaatsen
+    let totalSlots = 0;
+    docenten.forEach(d => {
+        const inz = _inzetten[d.id] || {};
+        Object.keys(inz).forEach(key => {
+            const max = key.endsWith('-O') ? MAX_O : MAX_M;
+            const used = Object.keys(_planning[d.id]?.[key] || {}).length;
+            totalSlots += Math.max(0, max - used);
+        });
+    });
+
+    setEl('st-totaal', tot);
+    setEl('st-gepland', gep);
+    setEl('st-wacht', wacht);
+    setEl('st-slots', totalSlots);
+    setEl('ov-tot', tot); setEl('ov-gep', gep); setEl('ov-wacht', wacht);
+    setEl('ov-pct', tot > 0 ? Math.round(gep/tot*100)+'%' : '0%');
+    setEl('ov-wachtCnt', wacht); setEl('ov-geplandCnt', gep);
+}
+
+function setEl(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+
+// ════════════════════════════════════════════
+//  STUDENTENLIJST TAB
+// ════════════════════════════════════════════
+function addSingle() {
+    const inp = document.getElementById('singleInput');
+    const naam = inp.value.trim();
+    if (!naam) return;
+    db.ref('studenten').push({ naam, ingepland: false, docentId: null, slotKey: null });
+    inp.value = '';
+    inp.focus();
+}
+
+function addBulk() {
+    const txt = document.getElementById('bulkInput').value.trim();
+    if (!txt) return;
+    const namen = txt.split('\n').map(n => n.trim()).filter(n => n.length > 0);
+    if (namen.length === 0) return;
+    const updates = {};
+    namen.forEach(naam => {
+        const key = db.ref('studenten').push().key;
+        updates['studenten/' + key] = { naam, ingepland: false, docentId: null, slotKey: null };
+    });
+    db.ref().update(updates);
+    document.getElementById('bulkInput').value = '';
+    alert(`✅ ${namen.length} student(en) toegevoegd!`);
+}
+
+function setFilter(f, btn) {
+    _filter = f;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderStudentenLijst();
+}
+
+function renderStudentenLijst() {
+    const container = document.getElementById('studentenLijst');
+    let entries = Object.entries(_studenten);
+
+    if (_filter === 'wacht')   entries = entries.filter(([,s]) => !s.ingepland);
+    if (_filter === 'gepland') entries = entries.filter(([,s]) =>  s.ingepland);
+
+    if (entries.length === 0) {
+        container.innerHTML = `<div class="empty-msg">${_filter === 'all' ? 'Nog geen studenten toegevoegd.' : 'Geen studenten in deze categorie.'}</div>`;
+        return;
+    }
+
+    entries.sort((a,b) => a[1].naam.localeCompare(b[1].naam));
+
+    container.innerHTML = entries.map(([id, s]) => {
+        let meta = '';
+        if (s.ingepland && s.docentId && s.slotKey) {
+            const doc = docenten.find(d => d.id === s.docentId);
+            const docNaam = doc ? doc.naam : s.docentId;
+            meta = `${docNaam} · ${slotLabel(s.slotKey)}`;
+        }
+        return `
+        <div class="student-item">
+            <div style="flex:1">
+                <div class="student-naam">${s.naam}</div>
+                ${meta ? `<div class="student-meta">📅 ${meta}</div>` : ''}
+            </div>
+            <span class="badge ${s.ingepland ? 'badge-gepland' : 'badge-wacht'}">
+                ${s.ingepland ? '✓ Ingepland' : '⏳ Wacht'}
+            </span>
+            ${s.ingepland ? `<button class="btn-sm btn-unassign" onclick="unassign('${id}')">↩ Uit planning</button>` : ''}
+            <button class="btn-sm btn-del" onclick="removeStudent('${id}')">🗑</button>
+        </div>`;
+    }).join('');
+}
+
+function removeStudent(id) {
+    const s = _studenten[id];
+    if (!s) return;
+    if (s.ingepland && !confirm(`'${s.naam}' is ingepland. Wil je deze student verwijderen uit de lijst én de planning?`)) return;
+    const updates = {};
+    updates['studenten/' + id] = null;
+    if (s.ingepland && s.docentId && s.slotKey) {
+        updates[`planning/${s.docentId}/${s.slotKey}/${id}`] = null;
+    }
+    db.ref().update(updates);
+}
+
+function unassign(id) {
+    const s = _studenten[id];
+    if (!s || !s.docentId || !s.slotKey) return;
+    const updates = {};
+    updates[`studenten/${id}/ingepland`] = false;
+    updates[`studenten/${id}/docentId`]  = null;
+    updates[`studenten/${id}/slotKey`]   = null;
+    updates[`planning/${s.docentId}/${s.slotKey}/${id}`] = null;
+    db.ref().update(updates);
+}
+
+// ════════════════════════════════════════════
+//  INPLANNEN TAB — WEEK TABS
+// ════════════════════════════════════════════
+function buildWeekTabs() {
+    const container = document.getElementById('weekTabs');
+    container.innerHTML = weeks.map(w => {
+        const dates = getDates(w.start);
+        const label = `${w.label}<br><span style="font-weight:500;font-size:10px;opacity:0.75">${formatDate(dates[0])}–${formatDate(dates[4])}</span>`;
+        return `<button class="week-tab ${w.week===1?'active':''}" onclick="selectWeek(${w.week},this)">${label}</button>`;
+    }).join('');
+}
+
+function selectWeek(n, btn) {
+    _currentWeek = n;
+    document.querySelectorAll('.week-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderGrid();
+}
+
+// ════════════════════════════════════════════
+//  INPLANNEN TAB — PLANNING GRID
+// ════════════════════════════════════════════
+function renderGrid() {
+    const w = weeks.find(x => x.week === _currentWeek);
+    if (!w) return;
+    const dates = getDates(w.start);
+    const container = document.getElementById('planningGrid');
+
+    let html = '<table class="plan-table">';
+
+    // Header row
+    html += '<tr><th class="plan-th-label" style="width:88px">Tijdslot</th>';
+    dates.forEach((date, i) => {
+        html += `<th class="plan-th">${dagNamen[i]}<br><span style="font-weight:500;font-size:11px;opacity:0.8">${formatDate(date)}</span></th>`;
+    });
+    html += '</tr>';
+
+    // Ochtend row
+    html += '<tr>';
+    html += `<td class="plan-td"><div style="padding:8px;text-align:center;background:#ede9fe;border-radius:8px;font-size:11px;font-weight:800;color:#6d28d9">🌅 Ochtend<br>10–12u<br><span style="font-weight:500;font-size:10px">max ${MAX_O}/docent</span></div></td>`;
+    dates.forEach((date, i) => {
+        const slotKey = `W${_currentWeek}-D${i}-O`;
+        const avail = docenten.filter(d => _inzetten[d.id]?.[slotKey]);
+        html += `<td class="plan-td"><div class="plan-cell ochtend">`;
+        if (avail.length === 0) {
+            html += `<div class="no-docenten">Niemand beschikbaar</div>`;
+        } else {
+            avail.forEach(d => { html += renderDocentSlot(d, slotKey, MAX_O); });
+        }
+        html += `</div></td>`;
+    });
+    html += '</tr>';
+
+    // Middag row
+    html += '<tr>';
+    html += `<td class="plan-td"><div style="padding:8px;text-align:center;background:#dcfce7;border-radius:8px;font-size:11px;font-weight:800;color:#15803d">🌤️ Middag<br>13–16u<br><span style="font-weight:500;font-size:10px">max ${MAX_M}/docent</span></div></td>`;
+    dates.forEach((date, i) => {
+        const slotKey = `W${_currentWeek}-D${i}-M`;
+        const avail = docenten.filter(d => _inzetten[d.id]?.[slotKey]);
+        html += `<td class="plan-td"><div class="plan-cell middag">`;
+        if (avail.length === 0) {
+            html += `<div class="no-docenten">Niemand beschikbaar</div>`;
+        } else {
+            avail.forEach(d => { html += renderDocentSlot(d, slotKey, MAX_M); });
+        }
+        html += `</div></td>`;
+    });
+    html += '</tr>';
+
+    html += '</table>';
+    container.innerHTML = html;
+}
+
+function renderDocentSlot(docent, slotKey, maxCount) {
+    const assigned = _planning[docent.id]?.[slotKey] || {};
+    const count = Object.keys(assigned).length;
+    const isFull = count >= maxCount;
+    const capClass = isFull ? 'cap-full' : count >= Math.ceil(maxCount * 0.6) ? 'cap-warn' : 'cap-ok';
+    const korteNaam = docent.naam.split(' ')[0]; // voornaam
+
+    let chips = Object.entries(assigned).map(([sid, naam]) =>
+        `<div class="chip">${naam} <span class="chip-x" onclick="removeFromSlot('${docent.id}','${escKey(slotKey)}','${sid}')">✕</span></div>`
+    ).join('');
+
+    const safeDocId = docent.id;
+    const safeSlot = escKey(slotKey);
+    const safeNaam = docent.naam.replace(/'/g, "\\'");
+
+    return `
+    <div class="docent-slot">
+        <div class="docent-slot-header">
+            <span class="docent-slot-name" title="${docent.naam}">${korteNaam}</span>
+            <span class="cap-badge ${capClass}">${count}/${maxCount}</span>
+        </div>
+        ${chips ? `<div class="student-chips">${chips}</div>` : ''}
+        <button class="btn-slot-add" ${isFull ? 'disabled' : `onclick="openModal('${safeDocId}','${safeSlot}','${safeNaam}')"`}>
+            ${isFull ? '🚫 Vol' : '+ Student'}
+        </button>
+    </div>`;
+}
+
+function escKey(k) { return k.replace(/'/g, "\\'"); }
+
+// ════════════════════════════════════════════
+//  MODAL — STUDENT TOEWIJZEN
+// ════════════════════════════════════════════
+function openModal(docentId, slotKey, docentNaam) {
+    _modalDocentId = docentId;
+    _modalSlotKey  = slotKey;
+
+    const w = weeks.find(x => x.week === _currentWeek);
+    const slotParts = slotKey.split('-');
+    const dayIdx = parseInt(slotParts[1].replace('D', ''));
+    const isO = slotKey.endsWith('-O');
+    const dates = getDates(w.start);
+    const datum = formatDate(dates[dayIdx]);
+    const tijd = isO ? '10:00–12:00' : '13:00–16:00';
+    const max  = isO ? MAX_O : MAX_M;
+    const count = Object.keys(_planning[docentId]?.[slotKey] || {}).length;
+
+    document.getElementById('modalCtx').innerHTML =
+        `<strong>Docent:</strong> ${docentNaam}<br>
+         <strong>Datum:</strong> ${dagNamen[dayIdx]} ${datum} &nbsp; <strong>Tijd:</strong> ${tijd}<br>
+         <strong>Bezetting:</strong> ${count}/${max} plaatsen`;
+
+    document.getElementById('mSearch').value = '';
+    filterPick();
+    document.getElementById('assignModal').classList.add('open');
+    document.getElementById('mSearch').focus();
+}
+
+function closeModal() {
+    document.getElementById('assignModal').classList.remove('open');
+    _modalDocentId = null;
+    _modalSlotKey  = null;
+}
+
+function filterPick() {
+    const q = document.getElementById('mSearch').value.toLowerCase();
+    const onIngepland = Object.entries(_studenten).filter(([,s]) => !s.ingepland);
+    const filtered = onIngepland.filter(([,s]) => s.naam.toLowerCase().includes(q));
+    const list = document.getElementById('pickList');
+    if (filtered.length === 0) {
+        list.innerHTML = `<div class="pick-empty">${onIngepland.length === 0 ? '✅ Alle studenten zijn al ingepland.' : 'Geen resultaten gevonden.'}</div>`;
+        return;
+    }
+    filtered.sort((a,b) => a[1].naam.localeCompare(b[1].naam));
+    list.innerHTML = filtered.map(([id, s]) =>
+        `<div class="pick-item" onclick="assignStudent('${id}')">
+            <span>👤</span><span>${s.naam}</span>
+        </div>`
+    ).join('');
+}
+
+function assignStudent(studentId) {
+    if (!_modalDocentId || !_modalSlotKey) return;
+    const s = _studenten[studentId];
+    if (!s) return;
+    const max = _modalSlotKey.endsWith('-O') ? MAX_O : MAX_M;
+    const count = Object.keys(_planning[_modalDocentId]?.[_modalSlotKey] || {}).length;
+    if (count >= max) { alert('❌ Dit gespreksblok is al vol!'); return; }
+
+    const updates = {};
+    updates[`planning/${_modalDocentId}/${_modalSlotKey}/${studentId}`] = s.naam;
+    updates[`studenten/${studentId}/ingepland`] = true;
+    updates[`studenten/${studentId}/docentId`]  = _modalDocentId;
+    updates[`studenten/${studentId}/slotKey`]   = _modalSlotKey;
+    db.ref().update(updates);
+    closeModal();
+}
+
+function removeFromSlot(docentId, slotKey, studentId) {
+    if (!confirm('Student verwijderen uit dit gespreksblok?')) return;
+    const updates = {};
+    updates[`planning/${docentId}/${slotKey}/${studentId}`] = null;
+    updates[`studenten/${studentId}/ingepland`] = false;
+    updates[`studenten/${studentId}/docentId`]  = null;
+    updates[`studenten/${studentId}/slotKey`]   = null;
+    db.ref().update(updates);
+}
+
+// ════════════════════════════════════════════
+//  OVERZICHT TAB
+// ════════════════════════════════════════════
+function renderOverzicht() {
+    const wachtLijst   = document.getElementById('ov-wachtLijst');
+    const geplandLijst = document.getElementById('ov-geplandLijst');
+    if (!wachtLijst || !geplandLijst) return;
+
+    const entries = Object.entries(_studenten).sort((a,b) => a[1].naam.localeCompare(b[1].naam));
+
+    const wacht  = entries.filter(([,s]) => !s.ingepland);
+    const gepland = entries.filter(([,s]) =>  s.ingepland);
+
+    wachtLijst.innerHTML = wacht.length === 0
+        ? '<div class="empty-msg">✅ Alle studenten zijn ingepland!</div>'
+        : wacht.map(([id,s]) =>
+            `<div class="ov-item">
+                <span class="ov-dot orange"></span>
+                <span class="ov-naam">${s.naam}</span>
+                <span class="ov-detail">⏳ Wacht</span>
+            </div>`).join('');
+
+    geplandLijst.innerHTML = gepland.length === 0
+        ? '<div class="empty-msg">Nog niemand ingepland.</div>'
+        : gepland.map(([id,s]) => {
+            const doc = docenten.find(d => d.id === s.docentId);
+            const docNaam = doc ? doc.naam.split(' ')[0] : '?';
+            const lbl = s.slotKey ? slotLabel(s.slotKey) : '';
+            return `<div class="ov-item">
+                <span class="ov-dot green"></span>
+                <span class="ov-naam">${s.naam}</span>
+                <span class="ov-detail">📅 ${docNaam} · ${lbl}</span>
+            </div>`;}).join('');
+}
+
+// ════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════
+function slotLabel(slotKey) {
+    if (!slotKey) return '';
+    const parts = slotKey.split('-');
+    const weekNr = parts[0].replace('W', '');
+    const dagIdx = parseInt(parts[1].replace('D', ''));
+    const isO = slotKey.endsWith('-O');
+    const w = weeks.find(x => x.week === parseInt(weekNr));
+    if (!w) return slotKey;
+    const dates = getDates(w.start);
+    const datum = formatDate(dates[dagIdx]);
+    const dag = dagNamen[dagIdx] || '?';
+    const tijd = isO ? '10–12u' : '13–16u';
+    return `Wk${weekNr} ${dag} ${datum} ${tijd}`;
+}
+
+// ════════════════════════════════════════════
+//  START
+// ════════════════════════════════════════════
+buildWeekTabs();
+renderGrid();
+
+}); // end window.load
+</script>
+</body>
+</html>
