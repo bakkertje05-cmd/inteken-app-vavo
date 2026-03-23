@@ -220,6 +220,69 @@
         .cal-legend { display: flex; gap: 16px; margin-bottom: 16px; font-size: 12px; font-weight: 600; align-items: center; }
         .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
 
+        /* ── KALENDER UITGEBREID ── */
+        .cal2-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+        .cal2-week {
+            background: #f8f9ff;
+            border-radius: 10px;
+            padding: 14px;
+            border: 1px solid #e5e7eb;
+        }
+        .cal2-week-title {
+            font-size: 12px; font-weight: 800; color: var(--brand-blue);
+            text-transform: uppercase; letter-spacing: .5px; margin-bottom: 12px;
+        }
+        .cal2-day {
+            background: white; border-radius: 8px; margin-bottom: 8px;
+            border: 1px solid var(--border); overflow: hidden;
+        }
+        .cal2-day:last-child { margin-bottom: 0; }
+        .cal2-day-header {
+            background: var(--brand-blue); color: white;
+            padding: 6px 10px; font-size: 11px; font-weight: 800;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .cal2-slot {
+            padding: 7px 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .cal2-slot:last-child { border-bottom: none; }
+        .cal2-slot.not-avail { background: #fafafa; }
+        .cal2-slot.avail-empty { background: #f0fdf4; }
+        .cal2-slot.avail-partial { background: #fffbeb; }
+        .cal2-slot.avail-full { background: #fef2f2; }
+        .cal2-slot-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 5px;
+        }
+        .cal2-slot-time {
+            font-size: 10px; font-weight: 800; color: var(--muted);
+        }
+        .cal2-slot-time.active { color: var(--brand-blue); }
+        .cal2-cap-badge {
+            font-size: 10px; font-weight: 800; padding: 1px 7px; border-radius: 8px;
+        }
+        .cal2-cap-badge.empty   { background: #dcfce7; color: #15803d; }
+        .cal2-cap-badge.partial { background: #fef9c3; color: #854d0e; }
+        .cal2-cap-badge.full    { background: #fee2e2; color: #991b1b; }
+        .cal2-cap-badge.na      { background: #f3f4f6; color: #9ca3af; }
+        .cal2-chips {
+            display: flex; flex-wrap: wrap; gap: 3px;
+        }
+        .cal2-chip {
+            font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 8px;
+            white-space: nowrap;
+        }
+        .cal2-chip.pending  { background: #dbeafe; color: #1e40af; }
+        .cal2-chip.done     { background: #cffafe; color: #0e7490; }
+        .cal2-no-stud {
+            font-size: 10px; color: #9ca3af; font-style: italic;
+        }
+
         /* ── NOTITIES TAB ── */
         .notities-grid {
             display: grid;
@@ -334,7 +397,117 @@
         .heat-cell .heat-value { font-size: 22px; }
         .heat-cell .heat-sub { font-size: 10px; opacity: 0.8; margin-top: 2px; }
 
+        /* ── CAPACITEIT TAB ── */
+        .cap-week-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+            gap: 12px;
+        }
+        .cap-pct-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: white;
+            font-size: 18px;
+            font-weight: 800;
+            white-space: nowrap;
+            min-width: 70px;
+            text-align: center;
+        }
+        .cap-days-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+        .cap-days-grid-1 {
+            display: grid;
+            grid-template-columns: 220px;
+            gap: 10px;
+        }
+        @media (max-width: 1000px) { .cap-days-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 700px) { .cap-days-grid { grid-template-columns: repeat(2, 1fr); } }
+        .cap-day {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .cap-day-header {
+            background: var(--brand-blue);
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 8px 10px;
+            text-align: center;
+        }
+        .cap-slot {
+            padding: 8px 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .cap-slot:last-child { border-bottom: none; }
+        .cap-slot.has-teachers { background: #f0fdf4; }
+        .cap-slot.no-teachers { background: #fff5f5; }
+        .cap-slot-label { font-size: 10px; font-weight: 700; color: var(--muted); margin-bottom: 3px; }
+        .cap-slot-count { font-size: 11px; font-weight: 700; color: var(--text); }
+        .cap-slot-count.cap-empty { color: #ef4444; font-style: italic; }
+        .cap-teacher-list { font-size: 9.5px; color: #374151; margin-top: 3px; line-height: 1.5; }
+        .cap-week-summary {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-top: 4px;
+            font-size: 13px;
+        }
+        .cap-sum-item { font-weight: 600; }
+        .cap-status-ok { color: #16a34a; }
+        .cap-status-warn { color: #d97706; }
+        .cap-status-error { color: #dc2626; }
+        .cap-legend {
+            display: flex;
+            gap: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .cap-legend-item { display: flex; align-items: center; gap: 6px; }
+        .cap-legend-dot { width: 14px; height: 14px; border-radius: 3px; }
+
         button { font-family: 'Plus Jakarta Sans', inherit; }
+
+        /* ── GESPREKKEN TAB ── */
+        .gesp-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 16px; margin-bottom: 24px; }
+        .gesp-stat { border-radius: 10px; padding: 20px; text-align: center; color: white; }
+        .gesp-stat.orange { background: linear-gradient(135deg, #ea580c, #f97316); }
+        .gesp-stat.green  { background: linear-gradient(135deg, #16a34a, #4ade80); }
+        .gesp-stat.teal   { background: linear-gradient(135deg, #0891b2, #22d3ee); }
+        .gesp-stat.blue   { background: linear-gradient(135deg, var(--brand-blue), var(--brand-purple2)); }
+        .gesp-stat .gval  { font-size: 36px; font-weight: 800; margin: 6px 0; }
+        .gesp-stat .glbl  { font-size: 11px; opacity: .88; text-transform: uppercase; letter-spacing: .5px; }
+        .gesp-prog { height: 6px; background: rgba(255,255,255,.25); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+        .gesp-prog-fill { height: 100%; background: white; border-radius: 3px; transition: width .4s; }
+        .gesp-progress-bar { margin: 4px 0 20px; height: 14px; background: #e5e7eb; border-radius: 7px; overflow: hidden; display: flex; }
+        .gesp-pb-open { background: #f97316; transition: width .4s; }
+        .gesp-pb-plan { background: var(--brand-green); transition: width .4s; }
+        .gesp-pb-uit  { background: #0891b2; transition: width .4s; }
+        .gesp-pb-label { display: flex; gap: 20px; font-size: 12px; font-weight: 600; margin-bottom: 16px; flex-wrap: wrap; }
+        .gesp-pb-dot { width: 12px; height: 12px; border-radius: 3px; display: inline-block; margin-right: 4px; }
+        .gesp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .gesp-table th { background: var(--brand-blue); color: white; padding: 10px 14px; text-align: left; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; }
+        .gesp-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        .gesp-table tr:last-child td { border-bottom: none; }
+        .gesp-table tr:hover td { background: #f8f9ff; }
+        .gesp-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+        .gesp-badge.open { background: #FFF3CD; color: #7d5a00; }
+        .gesp-badge.gepland { background: #C6EFCE; color: #1a5c1a; }
+        .gesp-badge.uitgevoerd { background: #cffafe; color: #0e7490; }
+        .gesp-search { padding: 9px 14px; border: 2px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 13px; width: 300px; max-width: 100%; margin-bottom: 16px; }
+        .gesp-search:focus { outline: none; border-color: var(--brand-purple); }
+        .gesp-filter-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .gesp-filter-btn { padding: 5px 14px; border: 2px solid var(--border); background: white; border-radius: 20px; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; color: var(--muted); transition: all .2s; }
+        .gesp-filter-btn.active { background: var(--brand-blue); color: white; border-color: var(--brand-blue); }
     </style>
 </head>
 <body>
@@ -342,12 +515,14 @@
 <div class="top-bar">
     <div class="top-bar-inner">
         <h1>🎯 Manager Dashboard — INTAKEWEKEN</h1>
-        <p>Live monitoring beschikbaarheid docenten | 12 Juni – 18 Juli 2026</p>
+        <p>Live monitoring beschikbaarheid docenten | Vrijdag 12 Juni + 6 weken: 15 Juni – 24 Juli 2026</p>
         <nav class="tab-nav">
             <button class="tab-btn active" onclick="switchTab('overzicht')">📊 Overzicht</button>
             <button class="tab-btn" onclick="switchTab('statistieken')">📈 Statistieken</button>
             <button class="tab-btn" onclick="switchTab('kalender')">📅 Kalender</button>
+            <button class="tab-btn" onclick="switchTab('capaciteit')">🔢 Capaciteit</button>
             <button class="tab-btn" onclick="switchTab('notities')">💬 Notities</button>
+            <button class="tab-btn" onclick="switchTab('gesprekken')">🎯 Gesprekken</button>
         </nav>
     </div>
 </div>
@@ -434,12 +609,27 @@
                 </select>
             </div>
             <div class="cal-legend">
-                <div class="legend-dot" style="background:var(--brand-green)"></div> Ingepland
-                <div class="legend-dot" style="background:#f3f4f6; border:1px solid #ddd"></div> Vrij
+                <div class="legend-dot" style="background:#dcfce7;border:1px solid #86efac"></div> Beschikbaar, vrij
+                <div class="legend-dot" style="background:#fef9c3;border:1px solid #fde047"></div> Gedeeltelijk vol
+                <div class="legend-dot" style="background:#fee2e2;border:1px solid #fca5a5"></div> Vol
+                <div class="legend-dot" style="background:#fafafa;border:1px solid #e5e7eb"></div> Niet beschikbaar
             </div>
             <div id="calContent">
                 <div class="cal-empty-msg">👆 Selecteer een docent om de kalender te zien</div>
             </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════ TAB: CAPACITEIT ════════════════════ -->
+    <div class="tab-panel" id="tab-capaciteit">
+        <div class="card">
+            <div class="card-title">🔢 Capaciteitsplanning — Week 1 (vr 12 jun: 10 gesprekken) + Weken 2–7 (690 gesprekken) = 700 totaal</div>
+            <div class="cap-legend">
+                <div class="cap-legend-item"><div class="cap-legend-dot" style="background:#f0fdf4;border:1px solid #86efac"></div> Dagdeel ingevuld</div>
+                <div class="cap-legend-item"><div class="cap-legend-dot" style="background:#fff5f5;border:1px solid #fca5a5"></div> Dagdeel leeg</div>
+                <div class="cap-legend-item" style="margin-left:auto;">💡 Dagdeel 1: 6 gesprekken/docent &nbsp;|&nbsp; Dagdeel 2: 9 gesprekken/docent</div>
+            </div>
+            <div id="capaciteitContent"><div style="text-align:center;padding:40px;color:var(--muted)">⏳ Data wordt geladen...</div></div>
         </div>
     </div>
 
@@ -452,9 +642,55 @@
         </div>
     </div>
 
-</div>
+    <!-- ════════════════════ TAB: GESPREKKEN ════════════════════ -->
+    <div class="tab-panel" id="tab-gesprekken">
 
-<!-- ════════════════════ MODAL: KALENDAR DETAIL ════════════════════ -->
+        <div class="gesp-stats" id="gespStats"></div>
+
+        <div class="card">
+            <div class="card-title">📊 Voortgang gesprekken</div>
+            <div class="gesp-pb-label">
+                <span><span class="gesp-pb-dot" style="background:#f97316"></span>Open</span>
+                <span><span class="gesp-pb-dot" style="background:var(--brand-green)"></span>Ingepland</span>
+                <span><span class="gesp-pb-dot" style="background:#0891b2"></span>Uitgevoerd</span>
+            </div>
+            <div class="gesp-progress-bar" id="gespProgressBar">
+                <div class="gesp-pb-open" id="pbOpen" style="width:0%"></div>
+                <div class="gesp-pb-plan" id="pbPlan" style="width:0%"></div>
+                <div class="gesp-pb-uit"  id="pbUit"  style="width:0%"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">👥 Alle studenten</div>
+            <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px">
+                <input type="text" class="gesp-search" id="gespSearch" placeholder="🔍 Zoek student…" oninput="filterGespTable()">
+                <div class="gesp-filter-bar" id="gespFilterBar">
+                    <button class="gesp-filter-btn active" onclick="setGespFilter('all',this)">Alle</button>
+                    <button class="gesp-filter-btn" onclick="setGespFilter('open',this)">🟠 Open</button>
+                    <button class="gesp-filter-btn" onclick="setGespFilter('gepland',this)">🟢 Ingepland</button>
+                    <button class="gesp-filter-btn" onclick="setGespFilter('uitgevoerd',this)">🔵 Uitgevoerd</button>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table class="gesp-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Student</th>
+                            <th>Status</th>
+                            <th>Docent</th>
+                            <th>Datum &amp; Tijd</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gespBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+</div><!-- /main -->
 <div class="modal-overlay" id="calModal">
     <div class="modal">
         <div class="modal-header">
@@ -522,16 +758,18 @@ window.addEventListener('load', function () {
         { id:'D19', naam:'Niels Lodewijk' },       { id:'D20', naam:'Anass Sbai' },
         { id:'D21', naam:'Dilan Tsusiz' },         { id:'D22', naam:'Heba Sharaawy' },
         { id:'D23', naam:'Irene Bakker' },         { id:'D24', naam:'Robert Reijns' },
-        { id:'D25', naam:'Leon Molijn' }
+        { id:'D25', naam:'Annie van der Velden' },  { id:'D26', naam:'Leon Molijn' },
+        { id:'D27', naam:'Conny Koolmees' }
     ];
 
     const weeks = [
-        { week:1, label:'Week 1', sublabel:'12 jun', start:new Date(2026,5,12), numDays:1 },
+        { week:1, label:'Week 1', sublabel:'wo–vr 10–12 jun', start:new Date(2026,5,10), numDays:5 },
         { week:2, label:'Week 2', sublabel:'15–19 jun', start:new Date(2026,5,15), numDays:5 },
         { week:3, label:'Week 3', sublabel:'22–26 jun', start:new Date(2026,5,22), numDays:5 },
         { week:4, label:'Week 4', sublabel:'29 jun – 3 jul', start:new Date(2026,5,29), numDays:5 },
         { week:5, label:'Week 5', sublabel:'6–10 jul', start:new Date(2026,6,6),  numDays:5 },
         { week:6, label:'Week 6', sublabel:'13–17 jul', start:new Date(2026,6,13), numDays:5 },
+        { week:7, label:'Week 7', sublabel:'20–24 jul', start:new Date(2026,6,20), numDays:5 },
     ];
 
     const dayNames = ['Zo','Ma','Di','Wo','Do','Vr','Za'];
@@ -553,9 +791,12 @@ window.addEventListener('load', function () {
     let _allInzetten = {};
     let _allStatus = {};
     let _allNotities = {};
+    let _allStudenten = {};
+    let _allPlanning = {};
     let _weekChart = null;
     let _statusChart = null;
     let _docentChart = null;
+    let _gespFilter = 'all';
 
     // ── TAB SWITCHING ─────────────────────────────────────────────────
     window.switchTab = function(name) {
@@ -564,6 +805,8 @@ window.addEventListener('load', function () {
         document.getElementById('tab-' + name).classList.add('active');
         event.currentTarget.classList.add('active');
         if (name === 'statistieken') updateCharts();
+        if (name === 'capaciteit')   renderCapaciteitOverzicht();
+        if (name === 'gesprekken')   renderGesprekken();
     };
 
     // ── MAIN DASHBOARD LISTENER ───────────────────────────────────────
@@ -575,6 +818,10 @@ window.addEventListener('load', function () {
                 updateStatCards();
                 updateTable();
                 updateWeekHeatmap();
+                // Herrender capaciteit als die tab actief is
+                if (document.getElementById('tab-capaciteit').classList.contains('active')) {
+                    renderCapaciteitOverzicht();
+                }
             });
         });
 
@@ -587,6 +834,23 @@ window.addEventListener('load', function () {
             _allNotities = snap.val() || {};
             renderNotities();
             refreshNoteButtons();
+        });
+
+        // Studenten listener — voor gesprekken tab & stat cards
+        db.ref('studenten').on('value', function(snap) {
+            _allStudenten = snap.val() || {};
+            updateStatCards();
+            if (document.getElementById('tab-gesprekken').classList.contains('active')) renderGesprekken();
+        });
+
+        // Planning listener — voor kalender
+        db.ref('planning').on('value', function(snap) {
+            _allPlanning = snap.val() || {};
+            // Herrender kalender als die tab actief is
+            if (document.getElementById('tab-kalender').classList.contains('active')) {
+                const docentId = document.getElementById('calDocentSelect').value;
+                if (docentId) window.renderCalendar();
+            }
         });
     }
 
@@ -603,12 +867,23 @@ window.addEventListener('load', function () {
             if (_allStatus[doc.id]?.confirmed) bevestigdCount++;
         });
 
+        const studArr = Object.values(_allStudenten);
+        const gTotaal = studArr.length;
+        const gUit    = studArr.filter(s => s.uitgevoerd).length;
+        const gPlan   = studArr.filter(s => s.ingepland && !s.uitgevoerd).length;
+        const gOpen   = gTotaal - gPlan - gUit;
+        const gPct    = gTotaal > 0 ? Math.round((gPlan+gUit)/gTotaal*100) : 0;
+
         document.getElementById('statsGrid').innerHTML = `
             <div class="stat-card"><div class="lbl">Docenten Ingezet</div><div class="val">${inzetCount}/${docenten.length}</div></div>
             <div class="stat-card"><div class="lbl">Bevestigd</div><div class="val">${bevestigdCount}</div></div>
             <div class="stat-card"><div class="lbl">Compleet (40u)</div><div class="val">${completCount}</div></div>
             <div class="stat-card"><div class="lbl">Totale Dagdelen</div><div class="val">${totalDagdelen}</div></div>
             <div class="stat-card"><div class="lbl">Totale Uren</div><div class="val">${totalDagdelen*4}u</div></div>
+            <div class="stat-card" style="background:linear-gradient(135deg,#ea580c,#f97316)"><div class="lbl">Gesprekken Open</div><div class="val">${gOpen}</div></div>
+            <div class="stat-card" style="background:linear-gradient(135deg,#16a34a,#4ade80)"><div class="lbl">Ingepland</div><div class="val">${gPlan}</div></div>
+            <div class="stat-card" style="background:linear-gradient(135deg,#0891b2,#22d3ee)"><div class="lbl">Uitgevoerd</div><div class="val">${gUit}</div></div>
+            <div class="stat-card" style="background:linear-gradient(135deg,#4338ca,#667eea)"><div class="lbl">Voortgang</div><div class="val">${gPct}%</div></div>
         `;
     }
 
@@ -665,13 +940,14 @@ window.addEventListener('load', function () {
     // ── WEEK HEATMAP ──────────────────────────────────────────────────
     function updateWeekHeatmap() {
         const weekCounts = computeWeekCounts();
-        const weekMax = [2, 10, 10, 10, 10, 10]; // slots per week (1 dag of 5 dagen × 2)
+        const weekMax = [10, 10, 10, 10, 10, 10, 10]; // slots per week (5 dagen × 2 dagdelen)
         const totalMax = weekMax.map(m => m * docenten.length);
 
         const colors = [
             ['#a8d5e2','#1a2a6c'],['#7db8d8','#1F4E78'],
             ['#667eea','#2d1b69'],['#764ba2','#1a0533'],
-            ['#5a4fcf','#0d0a2e'],['#4338ca','#0a0720']
+            ['#5a4fcf','#0d0a2e'],['#4338ca','#0a0720'],
+            ['#312e81','#06052e']
         ];
 
         document.getElementById('weekHeatmap').innerHTML = weeks.map((w,i) => {
@@ -689,12 +965,12 @@ window.addEventListener('load', function () {
     }
 
     function computeWeekCounts() {
-        const counts = [0,0,0,0,0,0];
+        const counts = [0,0,0,0,0,0,0];
         Object.values(_allInzetten).forEach(inzetten => {
             if (!inzetten) return;
             Object.keys(inzetten).forEach(key => {
                 const m = key.match(/^W(\d+)-/);
-                if (m) { const wi = parseInt(m[1])-1; if (wi>=0&&wi<6) counts[wi]++; }
+                if (m) { const wi = parseInt(m[1])-1; if (wi>=0&&wi<7) counts[wi]++; }
             });
         });
         return counts;
@@ -709,7 +985,7 @@ window.addEventListener('load', function () {
 
     function updateWeekChart() {
         const weekCounts = computeWeekCounts();
-        const weekMax = [2,10,10,10,10,10].map(m => m * docenten.length);
+        const weekMax = [10,10,10,10,10,10,10].map(m => m * docenten.length);
         const pcts = weekCounts.map((c,i) => Math.round((c/weekMax[i])*100));
         const labels = weeks.map(w => w.label + '\n' + w.sublabel);
 
@@ -726,7 +1002,7 @@ window.addEventListener('load', function () {
                 datasets: [{
                     label: 'Bezettingsgraad (%)',
                     data: pcts,
-                    backgroundColor: ['#a8d5e2','#7db8d8','#667eea','#764ba2','#5a4fcf','#4338ca'],
+                    backgroundColor: ['#a8d5e2','#7db8d8','#667eea','#764ba2','#5a4fcf','#4338ca','#312e81'],
                     borderRadius: 6,
                     borderSkipped: false,
                 }]
@@ -831,6 +1107,126 @@ window.addEventListener('load', function () {
         });
     }
 
+    // ── CAPACITEITSPLANNING ───────────────────────────────────────────
+    // Vrijdag 12 jun: 10 | Week 1: 60 | Week 2: 80 | Week 3: 100 | Week 4: 120 | Week 5: 150 | Week 6: 180
+    const gesprekkenPerWeek = [10, 60, 80, 100, 120, 150, 180];
+
+    function renderCapaciteitOverzicht() {
+        const container = document.getElementById('capaciteitContent');
+        if (!container) return;
+
+        let totalCapaciteit = 0;
+        let totalTarget = gesprekkenPerWeek.reduce((a,b) => a+b, 0);
+
+        let html = '';
+
+        weeks.forEach((w, wi) => {
+            const target = gesprekkenPerWeek[wi];
+            const dates = getDates(w.start, w.numDays);
+
+            // Bereken week-totaal capaciteit
+            let weekCapO = 0, weekCapM = 0;
+            const dayData = dates.map((date, di) => {
+                const oKey = `W${w.week}-D${di}-O`;
+                const mKey = `W${w.week}-D${di}-M`;
+                const teachersO = [], teachersM = [];
+                docenten.forEach(doc => {
+                    const inz = _allInzetten[doc.id] || {};
+                    if (inz[oKey]) teachersO.push(doc.naam.split(' ')[0] + ' ' + doc.naam.split(' ').at(-1).charAt(0) + '.');
+                    if (inz[mKey]) teachersM.push(doc.naam.split(' ')[0] + ' ' + doc.naam.split(' ').at(-1).charAt(0) + '.');
+                });
+                const capO = teachersO.length * 6;
+                const capM = teachersM.length * 9;
+                weekCapO += capO;
+                weekCapM += capM;
+                return { date, di, oKey, mKey, teachersO, teachersM, capO, capM };
+            });
+
+            const weekCap = weekCapO + weekCapM;
+            totalCapaciteit += weekCap;
+            const pct = target > 0 ? Math.round((weekCap / target) * 100) : 0;
+
+            let statusClass, statusText, badgeColor;
+            if (weekCap >= target) {
+                statusClass = 'cap-status-ok';
+                statusText = '✅ Capaciteit OK';
+                badgeColor = '#16a34a';
+            } else if (weekCap >= target * 0.75) {
+                statusClass = 'cap-status-warn';
+                statusText = '⚠️ Bijna voldoende';
+                badgeColor = '#d97706';
+            } else {
+                statusClass = 'cap-status-error';
+                statusText = '❌ Tekort';
+                badgeColor = '#dc2626';
+            }
+
+            const gridClass = w.numDays === 1 ? 'cap-days-grid-1' : 'cap-days-grid';
+
+            html += `
+            <div class="card" style="margin-bottom:20px">
+                <div class="cap-week-header">
+                    <div>
+                        <div style="font-size:15px;font-weight:800;color:var(--brand-blue);margin-bottom:6px">${w.label} &mdash; ${w.sublabel}</div>
+                        <div class="cap-week-summary">
+                            <span class="cap-sum-item">🎯 Target: <strong>${target} gesprekken</strong></span>
+                            <span class="cap-sum-item">📋 Capaciteit: <strong class="${statusClass}">${weekCap} gesprekken</strong></span>
+                            <span class="cap-sum-item">🌅 DG1 totaal: ${weekCapO} | ☀️ DG2 totaal: ${weekCapM}</span>
+                            <span class="${statusClass}" style="font-weight:700">${statusText}</span>
+                            ${weekCap < target ? `<span style="color:#dc2626;font-weight:700">Tekort: ${target - weekCap} gesprekken</span>` : weekCap > target ? `<span style="color:#0891b2;font-weight:700">Overschot: ${weekCap - target} gesprekken</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="cap-pct-badge" style="background:${badgeColor}">${pct}%</div>
+                </div>
+                <div class="${gridClass}">`;
+
+            dayData.forEach(({ date, teachersO, teachersM, capO, capM }) => {
+                html += `
+                <div class="cap-day">
+                    <div class="cap-day-header">${dayNames[date.getDay()]} ${formatDate(date)}</div>
+                    <div class="cap-slot ${teachersO.length > 0 ? 'has-teachers' : 'no-teachers'}">
+                        <div class="cap-slot-label">🌅 Dagdeel 1 &nbsp;10:00–12:00</div>
+                        ${teachersO.length > 0
+                            ? `<div class="cap-slot-count">${teachersO.length} docent(en) → ${capO} gesprekken</div>
+                               <div class="cap-teacher-list">${teachersO.join(' · ')}</div>`
+                            : `<div class="cap-slot-count cap-empty">— Niet ingevuld</div>`
+                        }
+                    </div>
+                    <div class="cap-slot ${teachersM.length > 0 ? 'has-teachers' : 'no-teachers'}">
+                        <div class="cap-slot-label">☀️ Dagdeel 2 &nbsp;13:00–16:00</div>
+                        ${teachersM.length > 0
+                            ? `<div class="cap-slot-count">${teachersM.length} docent(en) → ${capM} gesprekken</div>
+                               <div class="cap-teacher-list">${teachersM.join(' · ')}</div>`
+                            : `<div class="cap-slot-count cap-empty">— Niet ingevuld</div>`
+                        }
+                    </div>
+                </div>`;
+            });
+
+            html += `</div></div>`;
+        });
+
+        // Totaal samenvatting boven aan
+        const totalPct = Math.round((totalCapaciteit / totalTarget) * 100);
+        const totalStatus = totalCapaciteit >= totalTarget ? '✅ Totale capaciteit is voldoende'
+            : totalCapaciteit >= totalTarget * 0.8 ? '⚠️ Totale capaciteit bijna voldoende'
+            : '❌ Totale capaciteit is onvoldoende';
+        const totalColor = totalCapaciteit >= totalTarget ? '#16a34a'
+            : totalCapaciteit >= totalTarget * 0.8 ? '#d97706' : '#dc2626';
+
+        const samenvatting = `
+        <div style="background:linear-gradient(135deg,var(--brand-blue),var(--brand-purple2));color:white;border-radius:10px;padding:16px 20px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+            <div>
+                <div style="font-size:14px;font-weight:800;margin-bottom:6px">📊 Totaaloverzicht alle 7 weken</div>
+                <div style="font-size:13px;opacity:0.9">Target: <strong>${totalTarget} gesprekken</strong> &nbsp;|&nbsp; Geplande capaciteit: <strong>${totalCapaciteit} gesprekken</strong> &nbsp;|&nbsp; ${totalStatus}</div>
+            <div style="font-size:11px;opacity:0.7;margin-top:4px">Week 1 (vr 12 jun): 10 · Week 2: 60 · Week 3: 80 · Week 4: 100 · Week 5: 120 · Week 6: 150 · Week 7: 180</div>
+            </div>
+            <div style="background:${totalColor};padding:8px 18px;border-radius:20px;font-size:20px;font-weight:800">${totalPct}%</div>
+        </div>`;
+
+        container.innerHTML = samenvatting + html;
+    }
+
     // ── KALENDER ──────────────────────────────────────────────────────
     function buildCalSelect() {
         const sel = document.getElementById('calDocentSelect');
@@ -849,34 +1245,116 @@ window.addEventListener('load', function () {
         }
         const inzetten = _allInzetten[docentId] || {};
         const naam = docenten.find(d=>d.id===docentId)?.naam || '';
-        document.getElementById('calContent').innerHTML = buildCalHTML(naam, inzetten);
+        document.getElementById('calContent').innerHTML = buildCalHTML(docentId, naam, inzetten);
     };
 
-    function buildCalHTML(naam, inzetten) {
+    function buildCalHTML(docentId, naam, inzetten) {
         const dagdelen = Object.keys(inzetten).length;
         const uren = dagdelen * 4;
-        let html = `<p style="font-size:13px;font-weight:700;color:var(--brand-blue);margin-bottom:16px">
-            ${naam} — ${dagdelen} dagdelen / ${uren} uur van de ${MAX_UREN}u
-        </p><div class="cal-grid">`;
+
+        // Tel ingeplande en uitgevoerde gesprekken voor deze docent
+        const planningDoc = _allPlanning[docentId] || {};
+        let totalGepland = 0, totalUitgevoerd = 0;
+        Object.values(planningDoc).forEach(slot => {
+            Object.keys(slot || {}).forEach(sid => {
+                const s = _allStudenten[sid];
+                if (s?.uitgevoerd) totalUitgevoerd++;
+                else totalGepland++;
+            });
+        });
+
+        let html = `
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px">
+            <div style="background:linear-gradient(135deg,var(--brand-blue),var(--brand-purple2));color:white;border-radius:8px;padding:12px 18px;text-align:center;min-width:100px">
+                <div style="font-size:22px;font-weight:800">${dagdelen}</div>
+                <div style="font-size:10px;opacity:.85;text-transform:uppercase;letter-spacing:.5px">Dagdelen</div>
+            </div>
+            <div style="background:linear-gradient(135deg,var(--brand-blue),var(--brand-purple2));color:white;border-radius:8px;padding:12px 18px;text-align:center;min-width:100px">
+                <div style="font-size:22px;font-weight:800">${uren}u</div>
+                <div style="font-size:10px;opacity:.85;text-transform:uppercase;letter-spacing:.5px">Uren (max ${MAX_UREN})</div>
+            </div>
+            <div style="background:linear-gradient(135deg,#16a34a,#4ade80);color:white;border-radius:8px;padding:12px 18px;text-align:center;min-width:100px">
+                <div style="font-size:22px;font-weight:800">${totalGepland}</div>
+                <div style="font-size:10px;opacity:.85;text-transform:uppercase;letter-spacing:.5px">Ingepland</div>
+            </div>
+            <div style="background:linear-gradient(135deg,#0891b2,#22d3ee);color:white;border-radius:8px;padding:12px 18px;text-align:center;min-width:100px">
+                <div style="font-size:22px;font-weight:800">${totalUitgevoerd}</div>
+                <div style="font-size:10px;opacity:.85;text-transform:uppercase;letter-spacing:.5px">Uitgevoerd</div>
+            </div>
+        </div>
+        <div class="cal2-grid">`;
 
         weeks.forEach(w => {
             const dates = getDates(w.start, w.numDays);
-            html += `<div class="cal-week"><div class="cal-week-title">${w.label}<br><span style="font-weight:500;font-size:10px;opacity:0.7">${w.sublabel}</span></div>`;
+            html += `<div class="cal2-week">
+                <div class="cal2-week-title">${w.label} &nbsp;<span style="font-weight:500;opacity:.7">${w.sublabel}</span></div>`;
+
             dates.forEach((date, i) => {
                 const oKey = `W${w.week}-D${i}-O`;
                 const mKey = `W${w.week}-D${i}-M`;
                 const oSel = !!inzetten[oKey];
                 const mSel = !!inzetten[mKey];
+
+                const dayLabel = dayNames[date.getDay()];
+                const dateLabel = formatDate(date);
+
+                // Studenten per slot ophalen
+                const oStudents = Object.entries(planningDoc[oKey] || {}).map(([sid, naam]) => ({
+                    naam, done: !!_allStudenten[sid]?.uitgevoerd
+                }));
+                const mStudents = Object.entries(planningDoc[mKey] || {}).map(([sid, naam]) => ({
+                    naam, done: !!_allStudenten[sid]?.uitgevoerd
+                }));
+
+                const oMax = 5, mMax = 7;
+
+                function slotClass(sel, students, max) {
+                    if (!sel) return 'not-avail';
+                    if (students.length === 0) return 'avail-empty';
+                    if (students.length >= max) return 'avail-full';
+                    return 'avail-partial';
+                }
+
+                function capBadge(sel, students, max) {
+                    if (!sel) return `<span class="cal2-cap-badge na">Niet beschikbaar</span>`;
+                    const cls = students.length >= max ? 'full' : students.length > 0 ? 'partial' : 'empty';
+                    return `<span class="cal2-cap-badge ${cls}">${students.length}/${max}</span>`;
+                }
+
+                function chipsHtml(sel, students) {
+                    if (!sel) return `<span class="cal2-no-stud">—</span>`;
+                    if (students.length === 0) return `<span class="cal2-no-stud">Nog geen studenten ingepland</span>`;
+                    return `<div class="cal2-chips">${students.map(s =>
+                        `<span class="cal2-chip ${s.done ? 'done' : 'pending'}">${s.done ? '✓ ' : ''}${s.naam}</span>`
+                    ).join('')}</div>`;
+                }
+
                 html += `
-                    <div class="cal-day">
-                        <div class="cal-day-header">${dayNames[date.getDay()]}</div>
-                        <div class="cal-day-date">${formatDate(date)}</div>
-                        <div class="cal-slot ${oSel?'selected':'empty'}">10:00–12:00 ${oSel?'✓':''}</div>
-                        <div class="cal-slot ${mSel?'selected':'empty'}">13:00–16:00 ${mSel?'✓':''}</div>
-                    </div>`;
+                <div class="cal2-day">
+                    <div class="cal2-day-header">
+                        <span>${dayLabel} ${dateLabel}</span>
+                        <span style="opacity:.75;font-size:10px;font-weight:500">${(oSel||mSel)?'Beschikbaar':'Vrij'}</span>
+                    </div>
+                    <div class="cal2-slot ${slotClass(oSel, oStudents, oMax)}">
+                        <div class="cal2-slot-header">
+                            <span class="cal2-slot-time ${oSel?'active':''}">🌅 10:00–12:00</span>
+                            ${capBadge(oSel, oStudents, oMax)}
+                        </div>
+                        ${chipsHtml(oSel, oStudents)}
+                    </div>
+                    <div class="cal2-slot ${slotClass(mSel, mStudents, mMax)}">
+                        <div class="cal2-slot-header">
+                            <span class="cal2-slot-time ${mSel?'active':''}">🌤️ 13:00–16:00</span>
+                            ${capBadge(mSel, mStudents, mMax)}
+                        </div>
+                        ${chipsHtml(mSel, mStudents)}
+                    </div>
+                </div>`;
             });
+
             html += '</div>';
         });
+
         return html + '</div>';
     }
 
@@ -884,7 +1362,7 @@ window.addEventListener('load', function () {
     window.openCalendarModal = function(docentId, naam) {
         const inzetten = _allInzetten[docentId] || {};
         document.getElementById('modalTitle').textContent = '📅 Kalender — ' + naam;
-        document.getElementById('modalContent').innerHTML = buildCalHTML(naam, inzetten);
+        document.getElementById('modalContent').innerHTML = buildCalHTML(docentId, naam, inzetten);
         document.getElementById('calModal').classList.add('open');
     };
 
@@ -901,7 +1379,7 @@ window.addEventListener('load', function () {
         document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('tab-notities').classList.add('active');
-        document.querySelectorAll('.tab-btn')[3].classList.add('active');
+        document.querySelectorAll('.tab-btn')[4].classList.add('active');
         setTimeout(() => {
             const el = document.getElementById('note-'+docentId);
             if (el) el.scrollIntoView({ behavior:'smooth', block:'center' });
@@ -981,6 +1459,128 @@ window.addEventListener('load', function () {
             a.href = url; a.download = 'intaken_beschikbaarheid.csv'; a.click();
         });
     };
+
+    // ── GESPREKKEN TAB ────────────────────────────────────────────────
+    function renderGesprekken() {
+        const studArr = Object.values(_allStudenten);
+        const gTotaal = studArr.length;
+        const gUit    = studArr.filter(s => s.uitgevoerd).length;
+        const gPlan   = studArr.filter(s => s.ingepland && !s.uitgevoerd).length;
+        const gOpen   = gTotaal - gPlan - gUit;
+
+        // Stat cards
+        const statsEl = document.getElementById('gespStats');
+        if (statsEl) {
+            statsEl.innerHTML = `
+                <div class="gesp-stat blue">
+                    <div class="gval">${gTotaal}</div>
+                    <div class="glbl">Totaal studenten</div>
+                </div>
+                <div class="gesp-stat orange">
+                    <div class="gval">${gOpen}</div>
+                    <div class="glbl">Open — niet ingepland</div>
+                    <div class="gesp-prog"><div class="gesp-prog-fill" style="width:${gTotaal>0?Math.round(gOpen/gTotaal*100):0}%"></div></div>
+                </div>
+                <div class="gesp-stat green">
+                    <div class="gval">${gPlan}</div>
+                    <div class="glbl">Ingepland</div>
+                    <div class="gesp-prog"><div class="gesp-prog-fill" style="width:${gTotaal>0?Math.round(gPlan/gTotaal*100):0}%"></div></div>
+                </div>
+                <div class="gesp-stat teal">
+                    <div class="gval">${gUit}</div>
+                    <div class="glbl">Uitgevoerd</div>
+                    <div class="gesp-prog"><div class="gesp-prog-fill" style="width:${gTotaal>0?Math.round(gUit/gTotaal*100):0}%"></div></div>
+                </div>`;
+        }
+
+        // Progress bar
+        if (gTotaal > 0) {
+            const pOpen = Math.round(gOpen/gTotaal*100);
+            const pPlan = Math.round(gPlan/gTotaal*100);
+            const pUit  = Math.round(gUit/gTotaal*100);
+            const pbOpen = document.getElementById('pbOpen');
+            const pbPlan = document.getElementById('pbPlan');
+            const pbUit  = document.getElementById('pbUit');
+            if (pbOpen) pbOpen.style.width = pOpen + '%';
+            if (pbPlan) pbPlan.style.width = pPlan + '%';
+            if (pbUit)  pbUit.style.width  = pUit  + '%';
+        }
+
+        renderGespTable();
+    }
+
+    window.setGespFilter = function(f, btn) {
+        _gespFilter = f;
+        document.querySelectorAll('.gesp-filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderGespTable();
+    };
+
+    window.filterGespTable = function() { renderGespTable(); };
+
+    function renderGespTable() {
+        const tbody = document.getElementById('gespBody');
+        if (!tbody) return;
+        const q = (document.getElementById('gespSearch')?.value || '').toLowerCase();
+
+        let entries = Object.entries(_allStudenten);
+        if (_gespFilter === 'open')       entries = entries.filter(([,s]) => !s.ingepland && !s.uitgevoerd);
+        if (_gespFilter === 'gepland')    entries = entries.filter(([,s]) =>  s.ingepland && !s.uitgevoerd);
+        if (_gespFilter === 'uitgevoerd') entries = entries.filter(([,s]) =>  s.uitgevoerd);
+        if (q) entries = entries.filter(([,s]) => s.naam.toLowerCase().includes(q));
+        entries.sort((a,b) => a[1].naam.localeCompare(b[1].naam));
+
+        if (!entries.length) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px">Geen studenten gevonden.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = entries.map(([id,s], i) => {
+            let badge, docNaam = '—', slotLbl = '—';
+            if (s.uitgevoerd) {
+                badge = `<span class="gesp-badge uitgevoerd">✓ Uitgevoerd</span>`;
+            } else if (s.ingepland) {
+                badge = `<span class="gesp-badge gepland">📅 Ingepland</span>`;
+            } else {
+                badge = `<span class="gesp-badge open">⏳ Open</span>`;
+            }
+
+            if (s.docentId) {
+                const doc = docenten.find(d => d.id === s.docentId);
+                if (doc) docNaam = doc.naam;
+            }
+            if (s.slotKey) slotLbl = gespSlotLabel(s.slotKey);
+
+            return `<tr>
+                <td style="color:var(--muted);font-size:12px">${i+1}</td>
+                <td><strong>${s.naam}</strong></td>
+                <td>${badge}</td>
+                <td style="font-size:12px">${docNaam}</td>
+                <td style="font-size:12px">${slotLbl}</td>
+            </tr>`;
+        }).join('');
+    }
+
+    function gespSlotLabel(slotKey) {
+        if (!slotKey) return '—';
+        const dagNm  = ['Ma','Di','Wo','Do','Vr'];
+        const maandNm = ['jan','feb','mrt','apr','mei','jun','jul'];
+        const parts  = slotKey.split('-');
+        const weekNr = parseInt(parts[0].replace('W',''));
+        const dagIdx = parseInt(parts[1].replace('D',''));
+        const isO    = slotKey.endsWith('-O');
+        const allWeeks = [
+            { week:1, start:new Date(2026,5,10) }, { week:2, start:new Date(2026,5,17) },
+            { week:3, start:new Date(2026,5,24) }, { week:4, start:new Date(2026,6,1)  },
+            { week:5, start:new Date(2026,6,8)  }, { week:6, start:new Date(2026,6,15) },
+            { week:7, start:new Date(2026,6,22) },
+        ];
+        const w = allWeeks.find(x => x.week===weekNr);
+        if (!w) return slotKey;
+        const d = new Date(w.start);
+        d.setDate(d.getDate() + dagIdx);
+        return `${dagNm[dagIdx]} ${d.getDate()} ${maandNm[d.getMonth()]} · ${isO?'10:00–12:00':'13:00–16:00'}`;
+    }
 
     // ── START ─────────────────────────────────────────────────────────
     buildCalSelect();
