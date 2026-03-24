@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📅 INTAKEWEKEN 12 JUNI-18 JULI 2026</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            padding: 20px; min-height: 100vh; 
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { 
+            background: white; padding: 30px; border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 30px; text-align: center; 
+        }
+        .header h1 { color: #1F4E78; font-size: 28px; margin-bottom: 10px; }
+        .instruction-box {
+            background: #FFF3CD; padding: 15px; border-radius: 8px; 
+            margin-top: 20px; border-left: 4px solid #FFC000; text-align: left; 
+            font-size: 14px; color: #333;
+        }
+        .content { 
+            background: white; padding: 30px; border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+        }
+        select { 
+            width: 100%; padding: 12px; border: 2px solid #ddd;
+            border-radius: 6px; font-size: 14px; margin-bottom: 20px; 
+        }
+        .weeks { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
+
+        /* Reguliere week */
+        .week { background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #667eea; }
+        .week h3 { color: #1F4E78; margin-bottom: 10px; font-size: 14px; }
+
+        /* Inloopadviesdag week */
+        .week.iad-week { background: #FFF6ED; border-left: 4px solid #E67E22; }
+        .week.iad-week h3 { color: #C0580A; font-size: 13px; }
+        .day.iad-day { border: 1px solid #F0A868; background: #FFFAF5; }
+        .iad-slot-count { font-size: 10px; color: #C0580A; font-weight: bold; margin-top: 4px; margin-bottom: 1px; }
+
+        .week-capacity { font-size: 11px; color: #999; margin-bottom: 10px; }
+        .day { background: white; padding: 12px; border-radius: 6px; margin-bottom: 10px; border: 1px solid #ddd; }
+        .day-name { font-weight: bold; color: #1F4E78; font-size: 12px; }
+        .day-date { font-size: 11px; color: #666; }
+
+        /* Reguliere knoppen */
+        .btn { 
+            width: 100%; padding: 8px; margin-top: 8px;
+            background: #667eea; color: white; border: none;
+            border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; transition: all 0.3s;
+        }
+        .btn:hover:not(:disabled) { background: #764ba2; }
+        .btn.selected { background: #70AD47; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; opacity: 0.6; }
+        .btn.full { background: #FFB3B3; color: #9C0006; cursor: not-allowed; }
+
+        /* Inloopadviesdag knoppen */
+        .btn.iad-btn { background: #E67E22; }
+        .btn.iad-btn:hover:not(:disabled):not(.selected):not(.full) { background: #C0580A; }
+        .btn.iad-btn.selected { background: #70AD47; }
+        .btn.iad-btn.full { background: #FFB3B3; color: #9C0006; cursor: not-allowed; }
+        .btn.iad-btn:disabled:not(.full) { background: #ccc; cursor: not-allowed; opacity: 0.6; }
+
+        .stats { 
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;
+            margin-top: 20px; padding: 15px; background: #f0f2f5; border-radius: 8px; 
+        }
+        .stat { text-align: center; }
+        .stat-value { font-size: 24px; font-weight: bold; color: #667eea; }
+        .stat-label { font-size: 12px; color: #666; margin-top: 5px; }
+        .status-box {
+            background: #FFF3CD; padding: 15px; border-radius: 8px; 
+            margin-top: 20px; border-left: 4px solid #FFC000;
+        }
+        .status-box.confirmed { background: #C6EFCE; border-left-color: #70AD47; }
+        .status-box.locked { background: #FFE5E5; border-left-color: #FF6B6B; }
+        .confirm-btn {
+            width: 100%; padding: 12px; background: #70AD47; color: white; 
+            border: none; border-radius: 6px; font-weight: bold; cursor: pointer;
+            margin-top: 15px; font-size: 14px;
+        }
+        .confirm-btn:hover { background: #5a8c39; }
+        .confirm-btn:disabled { background: #ccc; cursor: not-allowed; }
+        .loading { text-align: center; color: #999; padding: 20px; }
+        .special { background: #FFF3CD; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 13px; }
+        .section-heading { color: #1F4E78; margin-top: 30px; margin-bottom: 5px; font-size: 18px; }
+        .section-heading.iad { color: #C0580A; }
+        .section-sub { font-size: 12px; color: #888; margin-bottom: 5px; }
+        #firebaseBanner {
+            padding: 14px 20px; border-radius: 8px; margin-bottom: 20px;
+            font-size: 13px; font-weight: bold; display: flex; flex-direction: column; gap: 6px;
+        }
+        #firebaseBanner.checking { background: #FFF3CD; border-left: 4px solid #FFC000; color: #7d5a00; }
+        #firebaseBanner.ok      { background: #C6EFCE; border-left: 4px solid #70AD47; color: #1a5c1a; }
+        #firebaseBanner.error   { background: #FFE5E5; border-left: 4px solid #FF4444; color: #8B0000; }
+        #firebaseBanner pre { background: #1e1e1e; color: #4EC9B0; padding: 10px 14px; border-radius: 6px;
+            font-size: 12px; margin-top: 4px; white-space: pre-wrap; font-family: monospace; font-weight: normal; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📅 INTAKEWEKEN 12 JUNI-18 JULI 2026</h1>
+            <p>Zet jezelf in voor de gespreksrondes • Max 40 uur gesprekken + max 15 uur inloopadviesdagen = max 55 uur totaal • Bevestig je inzetting</p>
+            <div class="instruction-box">
+                <strong>📋 Instructie:</strong><br>
+                1. Selecteer je naam in het dropdown menu<br>
+                2. Plan dagdelen in tot je aan de 40 uur bent<br>
+                3. Let op: Plan tenminste een aantal dagdelen in de <strong>laatste twee weken</strong> (week 5 & 6)<br>
+                4. Bevestig je inzetting wanneer je klaar bent
+            </div>
+        </div>
+        
+        <div id="firebaseBanner" class="checking">⏳ Verbinding met Firebase wordt gecontroleerd...</div>
+
+        <div class="content">
+            <h2 style="color: #1F4E78; margin-bottom: 15px;">👤 Selecteer jezelf:</h2>
+            <select id="docentSelect" onchange="loadDocent()">
+                <option value="">-- Kies je naam --</option>
+                <option value="D01">Hendrikje Balkenende</option>
+                <option value="D02">Rosanne Bartels</option>
+                <option value="D03">Bea Blumenstein</option>
+                <option value="D04">Jochem Borst</option>
+                <option value="D05">Ineke Braam</option>
+                <option value="D06">Hans Brunt</option>
+                <option value="D07">Judith van der Griendt</option>
+                <option value="D08">Helen Hilgeman</option>
+                <option value="D09">Christiaan Hoekstra</option>
+                <option value="D10">Marieke Meesters</option>
+                <option value="D11">Liekie Nipius</option>
+                <option value="D12">Zeliha Özmen</option>
+                <option value="D13">Zeliha Yilman</option>
+                <option value="D14">Esma Yüzgec</option>
+                <option value="D15">Eveline van de Pool</option>
+                <option value="D16">Vivian van de Wal</option>
+                <option value="D17">Lisa Vos</option>
+                <option value="D18">Franka de Bruijn</option>
+                <option value="D19">Niels Lodewijk</option>
+                <option value="D20">Anass Sbai</option>
+                <option value="D21">Dilan Tsusiz</option>
+                <option value="D22">Heba Sharaawy</option>
+                <option value="D23">Irene Bakker</option>
+                <option value="D24">Robert Reijns</option>
+                <option value="D25">Annie van der Velden</option>
+                <option value="D26">Rozemarijn Noordam</option>
+            </select>
+
+            <div id="content" style="display: none;">
+
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-value" id="totalDays">0</div>
+                        <div class="stat-label">Dagdelen gesprekken</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="totalHours">0</div>
+                        <div class="stat-label" id="hourLabel">Uren gesprekken (max 40)</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="iadHours">0</div>
+                        <div class="stat-label">Uren inloopadviesdagen (max 15)</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="totalCombined">0</div>
+                        <div class="stat-label">Totaal uren (max 55)</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="changes">2</div>
+                        <div class="stat-label">Wijzigingen over</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="syncStatus">✓</div>
+                        <div class="stat-label">Sync Status</div>
+                    </div>
+                </div>
+
+                <div id="statusBox" class="status-box" style="display: none;">
+                    <div id="statusText"></div>
+                </div>
+
+                <!-- Inloopadviesdag sectie -->
+                <h2 class="section-heading iad" style="margin-top: 30px;">🗓️ Inloopadviesdag dagdelen:</h2>
+                <p class="section-sub" style="color: #C0580A;">Max. 7 personen per dagdeel — schrijf je in voor een ochtend- en/of middagblok</p>
+                <div class="weeks" id="inloopadviesContainer"></div>
+
+                <!-- Reguliere intake-dagdelen -->
+                <h2 class="section-heading" style="margin-top: 30px;">📅 Kies je dagdelen:</h2>
+                <div class="weeks" id="weeks"></div>
+
+                <button id="confirmBtn" class="confirm-btn" onclick="confirmInzet()" style="display: none;">
+                    ✓ Bevestig mijn inzetting
+                </button>
+
+                <button onclick="resetInzet()" style="width: 100%; padding: 12px; background: #FF6B6B; color: white; border: none; border-radius: 6px; font-weight: bold; margin-top: 20px; cursor: pointer;">🗑️ Wis alles</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Compat SDK - moet VOOR de app-code staan -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script>
+        window.addEventListener('load', function () {
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBSEJIdGx0jhySaF73vWxEjvFezOUr0P10",
+            authDomain: "intake-app-2026.firebaseapp.com",
+            databaseURL: "https://intake-app-2026-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "intake-app-2026",
+            storageBucket: "intake-app-2026.firebasestorage.app",
+            messagingSenderId: "387454682734",
+            appId: "1:387454682734:web:bb28e5136ab1891bc7887f"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // ── Firebase verbindingstest ──────────────────────────────────────
+        const banner = document.getElementById('firebaseBanner');
+        const testRef = db.ref('.info/connected');
+        testRef.on('value', function(snap) {
+            if (snap.val() === true) {
+                db.ref('_connection_test').set({ ts: Date.now() })
+                  .then(() => {
+                    db.ref('_connection_test').remove();
+                    banner.className = 'ok';
+                    banner.innerHTML = '✅ Firebase verbonden — lezen & schrijven werkt correct.';
+                  })
+                  .catch(err => {
+                    banner.className = 'error';
+                    banner.innerHTML = `❌ <strong>Firebase verbonden maar schrijven geblokkeerd (Permission denied)</strong><br>
+                      <span style="font-weight:normal">Open de <strong>Firebase Console → Realtime Database → Rules</strong> en vervang de regels door:</span>
+                      <pre>{
+  "rules": {
+    ".read": true,
+    ".write": true
+  }
+}</pre>
+                      <span style="font-weight:normal">⚠️ Dit is alleen voor testdoeleinden. Beveilig de regels later met authenticatie.</span>`;
+                  });
+            } else {
+                banner.className = 'error';
+                banner.innerHTML = '🔴 <strong>Geen verbinding met Firebase.</strong> Controleer je internetverbinding of de Firebase configuratie.';
+            }
+        });
+
+        // ── Weekdata: gecorrigeerd naar echte maandagen ───────────────────
+        // Week 1: ma 8 jun t/m vr 12 jun
+        // Week 2: ma 15 jun t/m vr 19 jun
+        // Week 3: ma 22 jun t/m vr 26 jun
+        // Week 4: ma 29 jun t/m vr 3 jul
+        // Week 5: ma 6 jul t/m vr 10 jul
+        // Week 6: ma 13 jul t/m vr 17 jul
+        // Week 7: ma 20 jul t/m vr 24 jul
+        const weeks = [
+            { week: 1, start: new Date(2026, 5,  8) },   // ma 8 jun
+            { week: 2, start: new Date(2026, 5, 15) },   // ma 15 jun
+            { week: 3, start: new Date(2026, 5, 22) },   // ma 22 jun
+            { week: 4, start: new Date(2026, 5, 29) },   // ma 29 jun
+            { week: 5, start: new Date(2026, 6,  6) },   // ma 6 jul
+            { week: 6, start: new Date(2026, 6, 13) },   // ma 13 jul (t/m vr 17 jul)
+        ];
+
+        // ── Inloopadviesdag data (max 7 p.p. blok) ───────────────────────
+        // Wo 27 mei, Wo 3 jun, Wo 10 jun
+        const inloopadviesDagen = [
+            { date: new Date(2026, 4, 27), dayName: 'Wo' },  // 27 mei
+            { date: new Date(2026, 5,  3), dayName: 'Wo' },  // 3 jun
+            { date: new Date(2026, 5, 10), dayName: 'Wo' },  // 10 jun
+        ];
+
+        // ── Geblokkeerde slots (verwijderde dagdelen) ─────────────────────
+        // Woensdag 8 jul  → Week 5, dag 2 (Wo) → alle blokken weg
+        // Vrijdag  10 jul → Week 5, dag 4 (Vr) → alle blokken weg
+        // 15 jun          → Week 2, dag 0 (Ma) → geen middagblok
+        // 25 jun          → Week 3, dag 3 (Do) → geen middagblok
+        // 16 jul          → Week 6, dag 3 (Do) → geen middagblok
+        // 2 jul           → Week 4, dag 3 (Do) → geen ochtendblok
+        const blockedSlots = new Set([
+            'W5-D2-O', 'W5-D2-M',   // woensdag 8 jul — alle blokken
+            'W5-D4-O', 'W5-D4-M',   // vrijdag 10 jul — alle blokken
+            'W2-D0-M',               // 15 jun — geen middag
+            'W3-D3-M',               // 25 jun — geen middag
+            'W6-D3-M',               // 16 jul — geen middag
+            'W4-D3-O',               // donderdag 2 jul — geen ochtend
+        ]);
+
+        const days = ['Ma', 'Di', 'Wo', 'Do', 'Vr'];
+        const months = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul'];
+        const MAX_GESPREKKEN = 40;
+        const MAX_IAD_UREN = 15;
+        const MAX_IAD = 7;
+
+        function formatDate(d) {
+            return d.getDate() + ' ' + months[d.getMonth()];
+        }
+
+        function getDates(start) {
+            let dates = [];
+            for (let i = 0; i < 5; i++) {
+                let d = new Date(start);
+                d.setDate(d.getDate() + i);
+                dates.push(d);
+            }
+            return dates;
+        }
+
+        // ── Docent laden ──────────────────────────────────────────────────
+        window.loadDocent = function() {
+            let id = document.getElementById('docentSelect').value;
+            if (!id) {
+                document.getElementById('content').style.display = 'none';
+                return;
+            }
+            document.getElementById('content').style.display = 'block';
+            loadFromFirebase(id);
+            loadInloopadviesFromFirebase(id);
+        }
+
+        // ── Reguliere intake Firebase ──────────────────────────────────────
+        function loadFromFirebase(docentId) {
+            db.ref('inzetten/' + docentId).on('value', function(snapshot) {
+                const data = snapshot.val() || {};
+                renderWeeks(docentId, data);
+                updateStats(docentId, data);
+                loadStatus(docentId);
+            });
+        }
+
+        function renderWeeks(docentId, docentInzetten) {
+            let html = '';
+            weeks.forEach(w => {
+                let dates = getDates(w.start);
+
+                let weekHtml = `<div class="week"><h3>Week ${w.week}</h3>`;
+                let anyDayRendered = false;
+
+                dates.forEach((date, i) => {
+                    let ochtendKey = `W${w.week}-D${i}-O`;
+                    let middagKey  = `W${w.week}-D${i}-M`;
+
+                    let oBlocked = blockedSlots.has(ochtendKey);
+                    let mBlocked = blockedSlots.has(middagKey);
+
+                    if (oBlocked && mBlocked) return;
+
+                    anyDayRendered = true;
+
+                    let isOchtendSelected = docentInzetten[ochtendKey];
+                    let isMiddagSelected  = docentInzetten[middagKey];
+                    let totalHours = Object.keys(docentInzetten).length * 4;
+                    let canAddMore = totalHours < MAX_GESPREKKEN;
+
+                    weekHtml += `<div class="day">
+                        <div class="day-name">${days[i]}</div>
+                        <div class="day-date">${formatDate(date)}</div>`;
+
+                    if (!oBlocked) {
+                        weekHtml += `<button class="btn ${isOchtendSelected ? 'selected' : ''} ${!canAddMore && !isOchtendSelected ? 'disabled' : ''}"
+                            onclick="toggleInzet('${docentId}', '${ochtendKey}')">
+                            O ${isOchtendSelected ? '✓' : ''}
+                        </button>`;
+                    }
+                    if (!mBlocked) {
+                        weekHtml += `<button class="btn ${isMiddagSelected ? 'selected' : ''} ${!canAddMore && !isMiddagSelected ? 'disabled' : ''}"
+                            onclick="toggleInzet('${docentId}', '${middagKey}')">
+                            M ${isMiddagSelected ? '✓' : ''}
+                        </button>`;
+                    }
+
+                    weekHtml += `</div>`;
+                });
+
+                weekHtml += '</div>';
+                if (anyDayRendered) html += weekHtml;
+            });
+            document.getElementById('weeks').innerHTML = html;
+        }
+
+        window.toggleInzet = function(docentId, key) {
+            db.ref('inzetten/' + docentId).once('value', function(snapshot) {
+                let docentInzetten = snapshot.val() || {};
+                let totalHours = Object.keys(docentInzetten).length * 4;
+                if (docentInzetten[key]) {
+                    delete docentInzetten[key];
+                } else {
+                    if (totalHours >= MAX_GESPREKKEN) {
+                        alert(`❌ Je hebt het maximum van ${MAX_GESPREKKEN} uren voor gesprekken bereikt!`);
+                        return;
+                    }
+                    docentInzetten[key] = true;
+                }
+                db.ref('inzetten/' + docentId).set(docentInzetten);
+            });
+        }
+
+        function updateStats(docentId, docentInzetten) {
+            let count = Object.keys(docentInzetten).length;
+            let gesprekkenUren = count * 4;
+            document.getElementById('totalDays').textContent = count;
+            document.getElementById('totalHours').textContent = gesprekkenUren;
+            document.getElementById('confirmBtn').style.display = count > 0 ? 'block' : 'none';
+            // IAD uren ophalen voor gecombineerd totaal
+            db.ref('inloopadvies').once('value', function(snap) {
+                let allIad = snap.val() || {};
+                let iadCount = 0;
+                Object.values(allIad).forEach(slot => { if (slot[docentId]) iadCount++; });
+                let iadUren = iadCount * 4;
+                document.getElementById('iadHours').textContent = iadUren;
+                document.getElementById('totalCombined').textContent = gesprekkenUren + iadUren;
+            });
+        }
+
+        function loadStatus(docentId) {
+            db.ref('status/' + docentId).on('value', function(snapshot) {
+                const status = snapshot.val() || { confirmed: false, changesLeft: 2 };
+                updateStatusBox(docentId, status);
+                document.getElementById('changes').textContent = status.changesLeft;
+            });
+        }
+
+        function updateStatusBox(docentId, status) {
+            let statusBox = document.getElementById('statusBox');
+            let statusText = document.getElementById('statusText');
+            if (status.confirmed) {
+                statusBox.className = 'status-box confirmed';
+                statusText.innerHTML = status.changesLeft === 0
+                    ? '✓ <strong>BEVESTIGD EN VERGRENDELD</strong><br>Je inzetting is vastgesteld. Alleen de beheerder kan dit nog wijzigen.'
+                    : `✓ <strong>BEVESTIGD</strong><br>Je hebt nog <strong>${status.changesLeft}</strong> wijziging(en) over.`;
+                statusBox.style.display = 'block';
+            } else {
+                statusBox.style.display = 'none';
+            }
+        }
+
+        window.confirmInzet = function() {
+            let id = document.getElementById('docentSelect').value;
+            db.ref('status/' + id).set({ confirmed: true, changesLeft: 2 });
+            alert('✓ Je inzetting is bevestigd! Je hebt nog 2 keer de mogelijkheid om dit te wijzigen.');
+        }
+
+        window.resetInzet = function() {
+            if (confirm('Wil je ALLE je inzetten verwijderen?')) {
+                let id = document.getElementById('docentSelect').value;
+                db.ref('inzetten/' + id).set({});
+                db.ref('status/' + id).set({ confirmed: false, changesLeft: 2 });
+            }
+        }
+
+        // ── Inloopadviesdag Firebase ───────────────────────────────────────
+        // Slotkoppelingen: IAD-0-O / IAD-0-M, IAD-1-O / IAD-1-M, IAD-2-O / IAD-2-M
+        // Firebase pad: inloopadvies/{slotKey}/{docentId} = true
+
+        function loadInloopadviesFromFirebase(docentId) {
+            db.ref('inloopadvies').on('value', function(snapshot) {
+                const allData = snapshot.val() || {};
+                renderInloopadvies(docentId, allData);
+            });
+        }
+
+        function renderInloopadvies(docentId, allData) {
+            let html = '';
+            // Bereken huidige IAD uren voor deze docent
+            let iadCount = 0;
+            Object.values(allData).forEach(slot => { if (slot[docentId]) iadCount++; });
+            let iadUren = iadCount * 4;
+            document.getElementById('iadHours').textContent = iadUren;
+            // Update gecombineerd totaal
+            let gesprekkenUren = (parseInt(document.getElementById('totalHours').textContent) || 0);
+            document.getElementById('totalCombined').textContent = gesprekkenUren + iadUren;
+
+            inloopadviesDagen.forEach((dag, i) => {
+                let oKey = `IAD-${i}-O`;
+                let mKey = `IAD-${i}-M`;
+
+                let oSlot = allData[oKey] || {};
+                let mSlot = allData[mKey] || {};
+
+                let oCount = Object.keys(oSlot).length;
+                let mCount = Object.keys(mSlot).length;
+
+                let oSelected = !!oSlot[docentId];
+                let mSelected = !!mSlot[docentId];
+
+                let oFull = oCount >= MAX_IAD && !oSelected;
+                let mFull = mCount >= MAX_IAD && !mSelected;
+                let iadMax = iadUren >= MAX_IAD_UREN;
+
+                html += `
+                <div class="week iad-week">
+                    <h3>🗓️ Inloopadviesdag</h3>
+                    <div class="day iad-day">
+                        <div class="day-name">${dag.dayName}</div>
+                        <div class="day-date">${formatDate(dag.date)}</div>
+
+                        <div class="iad-slot-count">Ochtend: ${oCount}/${MAX_IAD}</div>
+                        <button class="btn iad-btn ${oSelected ? 'selected' : ''} ${oFull ? 'full' : ''}"
+                            ${(oFull || (iadMax && !oSelected)) ? 'disabled' : ''}
+                            onclick="toggleInloopadvies('${docentId}', '${oKey}')">
+                            O ${oSelected ? '✓' : (oFull ? 'VOL' : '')}
+                        </button>
+
+                        <div class="iad-slot-count">Middag: ${mCount}/${MAX_IAD}</div>
+                        <button class="btn iad-btn ${mSelected ? 'selected' : ''} ${mFull ? 'full' : ''}"
+                            ${(mFull || (iadMax && !mSelected)) ? 'disabled' : ''}
+                            onclick="toggleInloopadvies('${docentId}', '${mKey}')">
+                            M ${mSelected ? '✓' : (mFull ? 'VOL' : '')}
+                        </button>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('inloopadviesContainer').innerHTML = html;
+        }
+
+        window.toggleInloopadvies = function(docentId, slotKey) {
+            db.ref('inloopadvies').once('value', function(snapshot) {
+                let allData = snapshot.val() || {};
+                let slotData = allData[slotKey] || {};
+                let slotCount = Object.keys(slotData).length;
+
+                if (slotData[docentId]) {
+                    // Al ingeschreven → uitschrijven
+                    delete slotData[docentId];
+                    db.ref('inloopadvies/' + slotKey).set(slotData);
+                } else {
+                    // Controleer max 7 per slot
+                    if (slotCount >= MAX_IAD) {
+                        alert(`❌ Dit dagdeel is al vol (max ${MAX_IAD} personen)!`);
+                        return;
+                    }
+                    // Controleer max 15 IAD uren per docent
+                    let iadCount = 0;
+                    Object.values(allData).forEach(slot => { if (slot[docentId]) iadCount++; });
+                    if (iadCount * 4 >= MAX_IAD_UREN) {
+                        alert(`❌ Je hebt het maximum van ${MAX_IAD_UREN} uren voor inloopadviesdagen bereikt!`);
+                        return;
+                    }
+                    slotData[docentId] = true;
+                    db.ref('inloopadvies/' + slotKey).set(slotData);
+                }
+            });
+        }
+
+        }); // einde window.load
+    </script>
+
+</body>
+</html>
