@@ -111,7 +111,7 @@
                 <strong>📋 Instructie:</strong><br>
                 1. Selecteer je naam in het dropdown menu<br>
                 2. Plan dagdelen in tot je aan de 40 uur bent<br>
-                3. Let op: Plan tenminste een aantal dagdelen in de <strong>laatste twee weken</strong> (week 5 & 6)<br>
+                3. Let op: Plan tenminste een aantal dagdelen in de <strong>laatste twee weken</strong> (week 9 & 10)<br>
                 4. Bevestig je inzetting wanneer je klaar bent
             </div>
         </div>
@@ -250,21 +250,20 @@
             }
         });
 
-        // ── Weekdata: gecorrigeerd naar echte maandagen ───────────────────
-        // Week 1: ma 8 jun t/m vr 12 jun
-        // Week 2: ma 15 jun t/m vr 19 jun
-        // Week 3: ma 22 jun t/m vr 26 jun
-        // Week 4: ma 29 jun t/m vr 3 jul
-        // Week 5: ma 6 jul t/m vr 10 jul
-        // Week 6: ma 13 jul t/m vr 17 jul
-        // Week 7: ma 20 jul t/m vr 24 jul
+        // ── Weekdata ──────────────────────────────────────────────────────
+        // Weken 1-4: alleen dinsdag + woensdag (voorafgaande weken)
+        // Weken 5-10: volledige werkweken (ma t/m vr)
         const weeks = [
-            { week: 1, start: new Date(2026, 5,  8) },   // ma 8 jun
-            { week: 2, start: new Date(2026, 5, 15) },   // ma 15 jun
-            { week: 3, start: new Date(2026, 5, 22) },   // ma 22 jun
-            { week: 4, start: new Date(2026, 5, 29) },   // ma 29 jun
-            { week: 5, start: new Date(2026, 6,  6) },   // ma 6 jul
-            { week: 6, start: new Date(2026, 6, 13) },   // ma 13 jul (t/m vr 17 jul)
+            { week: 1,  start: new Date(2026, 4, 11), daysOnly: [1, 2] },  // di 12 + wo 13 mei
+            { week: 2,  start: new Date(2026, 4, 18), daysOnly: [1, 2] },  // di 19 + wo 20 mei
+            { week: 3,  start: new Date(2026, 4, 25), daysOnly: [1, 2] },  // di 26 + wo 27 mei
+            { week: 4,  start: new Date(2026, 5,  1), daysOnly: [1, 2] },  // di 2  + wo 3  jun
+            { week: 5,  start: new Date(2026, 5,  8) },                    // ma 8  jun t/m vr 12 jun
+            { week: 6,  start: new Date(2026, 5, 15) },                    // ma 15 jun t/m vr 19 jun
+            { week: 7,  start: new Date(2026, 5, 22) },                    // ma 22 jun t/m vr 26 jun
+            { week: 8,  start: new Date(2026, 5, 29) },                    // ma 29 jun t/m vr 3  jul
+            { week: 9,  start: new Date(2026, 6,  6) },                    // ma 6  jul t/m vr 10 jul
+            { week: 10, start: new Date(2026, 6, 13) },                    // ma 13 jul t/m vr 17 jul
         ];
 
         // ── Inloopadviesdag data (max 7 p.p. blok) ───────────────────────
@@ -276,19 +275,19 @@
         ];
 
         // ── Geblokkeerde slots (verwijderde dagdelen) ─────────────────────
-        // Woensdag 8 jul  → Week 5, dag 2 (Wo) → alle blokken weg
-        // Vrijdag  10 jul → Week 5, dag 4 (Vr) → alle blokken weg
-        // 15 jun          → Week 2, dag 0 (Ma) → geen middagblok
-        // 25 jun          → Week 3, dag 3 (Do) → geen middagblok
-        // 16 jul          → Week 6, dag 3 (Do) → geen middagblok
-        // 2 jul           → Week 4, dag 3 (Do) → geen ochtendblok
+        // Woensdag 8 jul  → Week 9,  dag 2 (Wo) → alle blokken weg
+        // Vrijdag  10 jul → Week 9,  dag 4 (Vr) → alle blokken weg
+        // 15 jun          → Week 6,  dag 0 (Ma) → geen middagblok
+        // 25 jun          → Week 7,  dag 3 (Do) → geen middagblok
+        // 16 jul          → Week 10, dag 3 (Do) → geen middagblok
+        // 2 jul           → Week 8,  dag 3 (Do) → geen ochtendblok
         const blockedSlots = new Set([
-            'W5-D2-O', 'W5-D2-M',   // woensdag 8 jul — alle blokken
-            'W5-D4-O', 'W5-D4-M',   // vrijdag 10 jul — alle blokken
-            'W2-D0-M',               // 15 jun — geen middag
-            'W3-D3-M',               // 25 jun — geen middag
-            'W6-D3-M',               // 16 jul — geen middag
-            'W4-D3-O',               // donderdag 2 jul — geen ochtend
+            'W9-D2-O',  'W9-D2-M',   // woensdag 8 jul  — alle blokken
+            'W9-D4-O',  'W9-D4-M',   // vrijdag  10 jul — alle blokken
+            'W6-D0-M',               // 15 jun — geen middag
+            'W7-D3-M',               // 25 jun — geen middag
+            'W10-D3-M',              // 16 jul — geen middag
+            'W8-D3-O',               // donderdag 2 jul — geen ochtend
         ]);
 
         const days = ['Ma', 'Di', 'Wo', 'Do', 'Vr'];
@@ -337,11 +336,13 @@
             let html = '';
             weeks.forEach(w => {
                 let dates = getDates(w.start);
+                let dayIndices = w.daysOnly || [0, 1, 2, 3, 4];
 
                 let weekHtml = `<div class="week"><h3>Week ${w.week}</h3>`;
                 let anyDayRendered = false;
 
-                dates.forEach((date, i) => {
+                dayIndices.forEach(i => {
+                    let date = dates[i];
                     let ochtendKey = `W${w.week}-D${i}-O`;
                     let middagKey  = `W${w.week}-D${i}-M`;
 
