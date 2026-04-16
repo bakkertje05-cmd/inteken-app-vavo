@@ -726,9 +726,9 @@ window.addEventListener('load', function () {
     const banner = document.getElementById('firebaseBanner');
     db.ref('.info/connected').on('value', function(snap) {
         if (snap.val() === true) {
-            db.ref('_connection_test').set({ ts: Date.now() })
+            db.ref('inzetten/_conn_test').set({ ts: Date.now() })
               .then(() => {
-                db.ref('_connection_test').remove();
+                db.ref('inzetten/_conn_test').remove();
                 banner.className = 'ok';
                 banner.innerHTML = '✅ Firebase verbonden — lezen & schrijven werkt correct.';
               })
