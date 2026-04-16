@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -182,6 +183,43 @@
 
         @media (max-width: 1000px) { .main { padding: 16px; } .top-bar { padding: 16px 16px 0; } }
         @media (max-width: 600px) { .stats-grid { grid-template-columns: repeat(2,1fr); } }
+
+        /* ── EMAIL & INSTELLINGEN ── */
+        .add-grid { display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; margin-bottom: 16px; align-items: end; }
+        @media (max-width: 700px) { .add-grid { grid-template-columns: 1fr; } }
+        .input-label { font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 5px; }
+        .badge-mail-sent    { background: #dcfce7; color: #15803d; }
+        .badge-mail-none    { background: #f3f4f6; color: #6b7280; }
+        .badge-mail-failed  { background: #fee2e2; color: #991b1b; }
+        .student-email      { font-size: 10px; color: var(--muted); margin-top: 1px; }
+        .btn-resend { background: #e0f2fe; color: #0369a1; }
+        .btn-resend:hover { background: #0369a1; color: white; }
+
+        /* INSTELLINGEN TAB */
+        .set-section { margin-bottom: 28px; }
+        .set-section-title { font-size: 13px; font-weight: 800; color: var(--brand-blue); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 2px solid #eef0f8; }
+        .set-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        @media (max-width: 700px) { .set-grid { grid-template-columns: 1fr; } }
+        .set-field { display: flex; flex-direction: column; gap: 5px; }
+        .set-label { font-size: 12px; font-weight: 700; color: var(--muted); }
+        .set-input { padding: 10px 14px; border: 2px solid var(--border); border-radius: 8px; font-size: 13px; transition: border-color .2s; }
+        .set-input:focus { outline: none; border-color: var(--brand-purple); }
+        .set-textarea { padding: 10px 14px; border: 2px solid var(--border); border-radius: 8px; font-size: 12px; font-family: monospace; resize: vertical; min-height: 200px; line-height: 1.6; transition: border-color .2s; }
+        .set-textarea:focus { outline: none; border-color: var(--brand-purple); }
+        .set-hint { font-size: 11px; color: var(--muted); line-height: 1.5; }
+        .set-hint code { background: #f3f4f6; padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+        .btn-save-set { padding: 11px 24px; background: var(--brand-green); color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; }
+        .btn-save-set:hover { opacity: .85; }
+        .btn-test-mail { padding: 11px 24px; background: #e0f2fe; color: #0369a1; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; }
+        .btn-test-mail:hover { background: #0369a1; color: white; }
+        .set-status { padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; display: none; margin-top: 12px; }
+        .set-status.ok    { background: #C6EFCE; color: #1a5c1a; display: block; }
+        .set-status.error { background: #FFE5E5; color: #8B0000; display: block; }
+        .setup-steps { background: #f0f4ff; border-radius: 10px; padding: 18px 20px; }
+        .setup-steps ol { padding-left: 20px; }
+        .setup-steps li { font-size: 13px; color: var(--text); margin-bottom: 8px; line-height: 1.5; }
+        .setup-steps a { color: var(--brand-purple); font-weight: 700; }
+        .setup-steps code { background: white; border: 1px solid var(--border); padding: 1px 6px; border-radius: 4px; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -210,6 +248,7 @@
             <button class="tab-btn active" onclick="switchTab('studenten',this)">👥 Studentenlijst</button>
             <button class="tab-btn" onclick="switchTab('inplannen',this)">📆 Inplannen</button>
             <button class="tab-btn" onclick="switchTab('overzicht',this)">👁️ Overzicht</button>
+            <button class="tab-btn" onclick="switchTab('instellingen',this)">⚙️ E-mail instellingen</button>
         </nav>
     </div>
 </div>
@@ -249,13 +288,21 @@
 
         <div class="card">
             <div class="card-title">➕ Student toevoegen</div>
-            <div class="add-row">
-                <input type="text" class="add-input" id="singleInput" placeholder="Naam student…"
-                       onkeypress="if(event.key==='Enter') addSingle()">
-                <button class="btn-primary" onclick="addSingle()">+ Toevoegen</button>
+            <div class="add-grid">
+                <div>
+                    <div class="input-label">Naam</div>
+                    <input type="text" class="add-input" id="singleInput" placeholder="Voor- en achternaam…"
+                           onkeypress="if(event.key==='Enter') document.getElementById('emailInput').focus()" style="width:100%">
+                </div>
+                <div>
+                    <div class="input-label">E-mailadres</div>
+                    <input type="email" class="add-input" id="emailInput" placeholder="student@email.nl…"
+                           onkeypress="if(event.key==='Enter') addSingle()" style="width:100%">
+                </div>
+                <button class="btn-primary" onclick="addSingle()" style="align-self:end">+ Toevoegen</button>
             </div>
-            <div class="sep-label">Of plak meerdere namen (één per regel):</div>
-            <textarea class="bulk-area" id="bulkInput" placeholder="Jan de Vries&#10;Fatima El Amrani&#10;Pedro Castillo&#10;…"></textarea>
+            <div class="sep-label">Of plak meerdere studenten — één per regel in het formaat: <code style="background:#f3f4f6;padding:1px 6px;border-radius:3px;font-size:11px">Naam; email@adres.nl</code></div>
+            <textarea class="bulk-area" id="bulkInput" placeholder="Jan de Vries; jan@email.nl&#10;Fatima El Amrani; fatima@email.nl&#10;Pedro Castillo&#10;…"></textarea>
             <button class="btn-primary" onclick="addBulk()">📋 Voeg alle namen toe</button>
         </div>
 
@@ -323,6 +370,78 @@
         </div>
     </div>
 
+    <!-- ══════════ TAB: INSTELLINGEN ══════════ -->
+    <div class="tab-panel" id="tab-instellingen">
+
+        <div class="card">
+            <div class="card-title">📖 Hoe EmailJS instellen?</div>
+            <div class="setup-steps">
+                <ol>
+                    <li>Maak een gratis account aan op <a href="https://www.emailjs.com" target="_blank">emailjs.com</a> (gratis tot 200 mails/maand)</li>
+                    <li>Voeg een <strong>Email Service</strong> toe (bijv. Gmail of Outlook) → kopieer de <code>Service ID</code></li>
+                    <li>Maak een <strong>Email Template</strong> aan met onderstaande variabelen → kopieer de <code>Template ID</code></li>
+                    <li>Ga naar <strong>Account → General</strong> → kopieer je <code>Public Key</code></li>
+                    <li>Vul de drie codes hieronder in en klik op Opslaan</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">🔑 EmailJS Configuratie</div>
+            <div class="set-section">
+                <div class="set-grid">
+                    <div class="set-field">
+                        <div class="set-label">Public Key</div>
+                        <input type="text" class="set-input" id="set-pubkey" placeholder="bijv. aBcDeFgHiJkLmNoPq">
+                    </div>
+                    <div class="set-field">
+                        <div class="set-label">Service ID</div>
+                        <input type="text" class="set-input" id="set-service" placeholder="bijv. service_abc123">
+                    </div>
+                    <div class="set-field">
+                        <div class="set-label">Template ID</div>
+                        <input type="text" class="set-input" id="set-template" placeholder="bijv. template_xyz789">
+                    </div>
+                    <div class="set-field">
+                        <div class="set-label">Locatie gesprek</div>
+                        <input type="text" class="set-input" id="set-locatie" placeholder="bijv. Lokaal A.104, Hogeschool Rotterdam">
+                    </div>
+                    <div class="set-field">
+                        <div class="set-label">Afzendernaam (zichtbaar voor student)</div>
+                        <input type="text" class="set-input" id="set-afzender" placeholder="bijv. Intakecoördinator CMGT">
+                    </div>
+                    <div class="set-field">
+                        <div class="set-label">Test-e-mailadres (voor testmail)</div>
+                        <input type="email" class="set-input" id="set-testmail" placeholder="jouw@email.nl">
+                    </div>
+                </div>
+            </div>
+
+            <div class="set-section">
+                <div class="set-section-title">✉️ E-mailtemplate — gebruik deze variabelen</div>
+                <div class="set-hint" style="margin-bottom:12px">
+                    Beschikbare variabelen: <code>{{naam}}</code> <code>{{dag}}</code> <code>{{datum}}</code>
+                    <code>{{tijd}}</code> <code>{{docent}}</code> <code>{{locatie}}</code> <code>{{afzender}}</code>
+                    <br>Zet deze variabelen ook exact zo in je EmailJS template.
+                </div>
+                <div class="set-field" style="margin-bottom:10px">
+                    <div class="set-label">Onderwerpregel</div>
+                    <input type="text" class="set-input" id="set-subject" placeholder="Uitnodiging intakegesprek — {{datum}} {{tijd}}">
+                </div>
+                <div class="set-field">
+                    <div class="set-label">Berichttekst</div>
+                    <textarea class="set-textarea" id="set-body"></textarea>
+                </div>
+            </div>
+
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+                <button class="btn-save-set" onclick="saveSettings()">💾 Instellingen opslaan</button>
+                <button class="btn-test-mail" onclick="sendTestMail()">📨 Stuur testmail</button>
+            </div>
+            <div class="set-status" id="setStatus"></div>
+        </div>
+    </div>
+
 </div><!-- /main -->
 </div><!-- /app -->
 
@@ -367,6 +486,7 @@ function switchTab(name, btn) {
     btn.classList.add('active');
     if (name === 'overzicht') renderOverzicht();
     if (name === 'inplannen' && _currentWeek) renderGrid();
+    if (name === 'instellingen') loadSettingsUI();
 }
 
 // ════════════════════════════
@@ -389,11 +509,30 @@ const db = firebase.database();
 const banner = document.getElementById('firebaseBanner');
 db.ref('.info/connected').on('value', snap => {
     if (snap.val() === true) {
-        db.ref('_conn_pl').set({ ts: Date.now() })
-          .then(() => { db.ref('_conn_pl').remove(); banner.className = 'ok'; banner.innerHTML = '✅ Firebase verbonden.'; })
-          .catch(() => { banner.className = 'error'; banner.innerHTML = '❌ Schrijven geblokkeerd — controleer Firebase Rules.'; });
+        // Test schrijven naar een pad dat door de Firebase Rules is toegestaan
+        const testRef = db.ref('_planner_test');
+        testRef.set({ ts: Date.now() })
+          .then(() => {
+              testRef.remove();
+              banner.className = 'ok';
+              banner.innerHTML = '✅ Firebase verbonden — lezen &amp; schrijven werkt.';
+          })
+          .catch(() => {
+              // Schrijven naar root geblokkeerd — probeer studenten-pad
+              db.ref('studenten/_conn_test').set({ ts: Date.now() })
+                .then(() => {
+                    db.ref('studenten/_conn_test').remove();
+                    banner.className = 'ok';
+                    banner.innerHTML = '✅ Firebase verbonden — lezen &amp; schrijven werkt.';
+                })
+                .catch(err => {
+                    banner.className = 'error';
+                    banner.innerHTML = `❌ Schrijven geblokkeerd. Open <strong>Firebase Console → Realtime Database → Rules</strong> en zorg dat schrijven is toegestaan voor de paden <code>studenten</code>, <code>planning</code> en <code>inzetten</code>.`;
+                });
+          });
     } else {
-        banner.className = 'error'; banner.innerHTML = '🔴 Geen verbinding met Firebase.';
+        banner.className = 'error';
+        banner.innerHTML = '🔴 Geen verbinding met Firebase. Controleer je internetverbinding.';
     }
 });
 
@@ -421,19 +560,21 @@ const docenten = [
 ];
 
 const weeks = [
-    { week:1, label:'Week 1', start:new Date(2026,5,10) },
-    { week:2, label:'Week 2', start:new Date(2026,5,17) },
-    { week:3, label:'Week 3', start:new Date(2026,5,24) },
-    { week:4, label:'Week 4', start:new Date(2026,6,1)  },
-    { week:5, label:'Week 5', start:new Date(2026,6,8)  },
-    { week:6, label:'Week 6', start:new Date(2026,6,15) },
-    { week:7, label:'Week 7', start:new Date(2026,6,22) },
+    { week:0, label:'Mei',    start:new Date(2026,4,11), numDays:3 },
+    { week:1, label:'Week 1', start:new Date(2026,5,10), numDays:5 },
+    { week:2, label:'Week 2', start:new Date(2026,5,17), numDays:5 },
+    { week:3, label:'Week 3', start:new Date(2026,5,24), numDays:5 },
+    { week:4, label:'Week 4', start:new Date(2026,6,1),  numDays:5 },
+    { week:5, label:'Week 5', start:new Date(2026,6,8),  numDays:5 },
+    { week:6, label:'Week 6', start:new Date(2026,6,15), numDays:5 },
+    { week:7, label:'Week 7', start:new Date(2026,6,22), numDays:5 },
 ];
 const dagNamen   = ['Ma','Di','Wo','Do','Vr'];
 const maandNamen = ['jan','feb','mrt','apr','mei','jun','jul'];
 function formatDate(d) { return d.getDate() + ' ' + maandNamen[d.getMonth()]; }
-function getDates(start) {
-    let a=[]; for(let i=0;i<5;i++){let d=new Date(start);d.setDate(d.getDate()+i);a.push(d);} return a;
+function getDates(start, numDays) {
+    numDays = numDays || 5;
+    let a=[]; for(let i=0;i<numDays;i++){let d=new Date(start);d.setDate(d.getDate()+i);a.push(d);} return a;
 }
 
 // ════════════════════════════
@@ -443,7 +584,7 @@ let _inzetten  = {};
 let _studenten = {};
 let _planning  = {};
 let _filter    = 'all';
-let _currentWeek = 1;
+let _currentWeek = 0;
 let _modalDocentId = null;
 let _modalSlotKey  = null;
 
@@ -503,30 +644,36 @@ function pct(id, v) { const e=document.getElementById(id); if(e) e.style.width=M
 // ════════════════════════════
 //  STUDENTENLIJST TAB
 // ════════════════════════════
-function addSingle() {
-    const inp = document.getElementById('singleInput');
-    const naam = inp.value.trim();
-    if (!naam) return;
-    db.ref('studenten').push({ naam, ingepland:false, uitgevoerd:false, docentId:null, slotKey:null });
-    inp.value = ''; inp.focus();
+window.addSingle = function() {
+    const inp   = document.getElementById('singleInput');
+    const einp  = document.getElementById('emailInput');
+    const naam  = inp.value.trim();
+    const email = einp.value.trim().toLowerCase();
+    if (!naam) { inp.focus(); return; }
+    db.ref('studenten').push({ naam, email: email || '', ingepland:false, uitgevoerd:false, mailVerzonden:false, docentId:null, slotKey:null });
+    inp.value = ''; einp.value = ''; inp.focus();
 }
 
-function addBulk() {
+window.addBulk = function() {
     const txt = document.getElementById('bulkInput').value.trim();
     if (!txt) return;
-    const namen = txt.split('\n').map(n=>n.trim()).filter(n=>n.length>0);
-    if (!namen.length) return;
+    const regels = txt.split('\n').map(r=>r.trim()).filter(r=>r.length>0);
+    if (!regels.length) return;
     const updates = {};
-    namen.forEach(naam => {
+    regels.forEach(regel => {
+        const delen = regel.split(';').map(d=>d.trim());
+        const naam  = delen[0] || '';
+        const email = (delen[1] || '').toLowerCase();
+        if (!naam) return;
         const key = db.ref('studenten').push().key;
-        updates['studenten/'+key] = { naam, ingepland:false, uitgevoerd:false, docentId:null, slotKey:null };
+        updates['studenten/'+key] = { naam, email, ingepland:false, uitgevoerd:false, mailVerzonden:false, docentId:null, slotKey:null };
     });
     db.ref().update(updates);
     document.getElementById('bulkInput').value = '';
-    alert(`✅ ${namen.length} student(en) toegevoegd!`);
+    alert(`✅ ${Object.keys(updates).length} student(en) toegevoegd!`);
 }
 
-function setFilter(f, btn) {
+window.setFilter = function(f, btn) {
     _filter = f;
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
@@ -549,6 +696,16 @@ function renderStudentenLijst() {
     container.innerHTML = entries.map(([id,s]) => {
         let badge, meta = '', buttons = '';
 
+        // Mail badge
+        let mailBadge = '';
+        if (s.email) {
+            if (s.mailVerzonden) {
+                mailBadge = `<span class="badge badge-mail-sent" title="Uitnodiging verzonden naar ${s.email}">✉️ Mail verzonden</span>`;
+            } else if (s.ingepland) {
+                mailBadge = `<span class="badge badge-mail-failed" title="Mail nog niet verzonden">⚠️ Mail niet verzonden</span>`;
+            }
+        }
+
         if (s.uitgevoerd) {
             badge = `<span class="badge badge-uitgevoerd">✓ Uitgevoerd</span>`;
             if (s.docentId && s.slotKey) {
@@ -563,6 +720,7 @@ function renderStudentenLijst() {
                 meta = `${doc ? doc.naam : s.docentId} · ${slotLabel(s.slotKey)}`;
             }
             buttons = `
+                ${s.email ? `<button class="btn-sm btn-resend" title="Uitnodiging opnieuw sturen naar ${s.email}" onclick="resendMail('${id}')">✉️ Opnieuw sturen</button>` : ''}
                 <button class="btn-sm btn-uitgevoerd" onclick="markUitgevoerd('${id}')">✓ Uitgevoerd</button>
                 <button class="btn-sm btn-unassign"   onclick="unassign('${id}')">↩ Uitplannen</button>`;
         } else {
@@ -573,8 +731,10 @@ function renderStudentenLijst() {
         <div class="student-item ${s.uitgevoerd?'is-uitgevoerd':''}">
             <div style="flex:1">
                 <div class="student-naam">${s.naam}</div>
+                ${s.email ? `<div class="student-email">✉ ${s.email}</div>` : '<div class="student-email" style="color:#fca5a5">Geen e-mailadres</div>'}
                 ${meta ? `<div class="student-meta">📅 ${meta}</div>` : ''}
             </div>
+            ${mailBadge}
             ${badge}
             ${buttons}
             <button class="btn-sm btn-del" onclick="removeStudent('${id}')">🗑</button>
@@ -585,14 +745,14 @@ function renderStudentenLijst() {
 // ════════════════════════════
 //  STATUS ACTIES
 // ════════════════════════════
-function markUitgevoerd(id) {
+window.markUitgevoerd = function(id) {
     db.ref('studenten/'+id).update({ uitgevoerd: true });
 }
-function unmarkUitgevoerd(id) {
+window.unmarkUitgevoerd = function(id) {
     db.ref('studenten/'+id).update({ uitgevoerd: false });
 }
 
-function unassign(id) {
+window.unassign = function(id) {
     const s = _studenten[id];
     if (!s || !s.docentId || !s.slotKey) return;
     const upd = {};
@@ -604,7 +764,7 @@ function unassign(id) {
     db.ref().update(upd);
 }
 
-function removeStudent(id) {
+window.removeStudent = function(id) {
     const s = _studenten[id];
     if (!s) return;
     if (s.ingepland && !confirm(`'${s.naam}' is ingepland. Wil je deze student verwijderen?`)) return;
@@ -620,9 +780,13 @@ function removeStudent(id) {
 function buildWeekTabs() {
     const c = document.getElementById('weekTabs');
     c.innerHTML = weeks.map(w => {
-        const dates = getDates(w.start);
-        return `<button class="week-tab ${w.week===1?'active':''}" onclick="selectWeek(${w.week},this)">
-            ${w.label}<br><span style="font-weight:500;font-size:10px;opacity:.75">${formatDate(dates[0])}–${formatDate(dates[4])}</span>
+        const dates = getDates(w.start, w.numDays);
+        const lastDate = dates[dates.length - 1];
+        const sublabel = w.numDays === 1
+            ? formatDate(dates[0])
+            : `${formatDate(dates[0])}–${formatDate(lastDate)}`;
+        return `<button class="week-tab ${w.week===0?'active':''}" onclick="selectWeek(${w.week},this)">
+            ${w.label}<br><span style="font-weight:500;font-size:10px;opacity:.75">${sublabel}</span>
         </button>`;
     }).join('');
 }
@@ -640,7 +804,7 @@ function selectWeek(n, btn) {
 function renderGrid() {
     const w = weeks.find(x => x.week===_currentWeek);
     if (!w) return;
-    const dates = getDates(w.start);
+    const dates = getDates(w.start, w.numDays);
     const c = document.getElementById('planningGrid');
 
     let html = '<table class="plan-table">';
@@ -716,13 +880,13 @@ function renderDocentSlot(docent, slotKey, maxCount) {
 // ════════════════════════════
 //  MODAL
 // ════════════════════════════
-function openModal(docentId, slotKey, docentNaam) {
+window.openModal = function(docentId, slotKey, docentNaam) {
     _modalDocentId = docentId;
     _modalSlotKey  = slotKey;
     const w = weeks.find(x => x.week===_currentWeek);
     const dayIdx = parseInt(slotKey.split('-')[1].replace('D',''));
     const isO = slotKey.endsWith('-O');
-    const dates = getDates(w.start);
+    const dates = getDates(w.start, w.numDays);
     const max = isO ? MAX_O : MAX_M;
     const count = Object.keys(_planning[docentId]?.[slotKey]||{}).length;
     document.getElementById('modalCtx').innerHTML =
@@ -735,12 +899,12 @@ function openModal(docentId, slotKey, docentNaam) {
     document.getElementById('mSearch').focus();
 }
 
-function closeModal() {
+window.closeModal = function() {
     document.getElementById('assignModal').classList.remove('open');
     _modalDocentId = null; _modalSlotKey = null;
 }
 
-function filterPick() {
+window.filterPick = function() {
     const q = document.getElementById('mSearch').value.toLowerCase();
     // Alleen studenten die NIET ingepland én NIET uitgevoerd zijn
     const beschikbaar = Object.entries(_studenten).filter(([,s]) => !s.ingepland && !s.uitgevoerd);
@@ -756,24 +920,33 @@ function filterPick() {
     ).join('');
 }
 
-function assignStudent(studentId) {
+window.assignStudent = function(studentId) {
     if (!_modalDocentId || !_modalSlotKey) return;
     const s = _studenten[studentId];
     if (!s) return;
     const max = _modalSlotKey.endsWith('-O') ? MAX_O : MAX_M;
     const count = Object.keys(_planning[_modalDocentId]?.[_modalSlotKey]||{}).length;
     if (count >= max) { alert('❌ Dit gespreksblok is al vol!'); return; }
+
+    const doc = docenten.find(d => d.id===_modalDocentId);
     const upd = {};
     upd[`planning/${_modalDocentId}/${_modalSlotKey}/${studentId}`] = s.naam;
     upd[`studenten/${studentId}/ingepland`]  = true;
     upd[`studenten/${studentId}/uitgevoerd`] = false;
     upd[`studenten/${studentId}/docentId`]   = _modalDocentId;
     upd[`studenten/${studentId}/slotKey`]    = _modalSlotKey;
-    db.ref().update(upd);
+    upd[`studenten/${studentId}/mailVerzonden`] = false;
+
+    db.ref().update(upd).then(() => {
+        // Verstuur uitnodigingsmail als student een emailadres heeft
+        if (s.email) {
+            sendInviteMail(studentId, s, doc, _modalSlotKey);
+        }
+    });
     closeModal();
 }
 
-function removeFromSlot(docentId, slotKey, studentId) {
+window.removeFromSlot = function(docentId, slotKey, studentId) {
     if (!confirm('Student verwijderen uit dit gespreksblok?')) return;
     const upd = {};
     upd[`planning/${docentId}/${slotKey}/${studentId}`] = null;
@@ -825,6 +998,148 @@ function setList(elId, arr, dotClass, detailFn, emptyMsg) {
 }
 
 // ════════════════════════════
+//  E-MAIL ENGINE
+// ════════════════════════════
+const DEFAULT_SUBJECT = 'Uitnodiging intakegesprek — {{datum}} {{tijd}}';
+const DEFAULT_BODY = `Beste {{naam}},
+
+Wij hebben je een intakegesprek ingepland. Hieronder vind je de details:
+
+📅 Datum:     {{dag}} {{datum}}
+🕐 Tijd:       {{tijd}}
+👤 Gesprekspartner: {{docent}}
+📍 Locatie:   {{locatie}}
+
+Wij verzoeken je op tijd aanwezig te zijn. Mocht je onverhoopt verhinderd zijn, neem dan zo snel mogelijk contact met ons op.
+
+Met vriendelijke groet,
+{{afzender}}`;
+
+function getSettings() {
+    return {
+        pubkey:   localStorage.getItem('ejs_pubkey')   || '',
+        service:  localStorage.getItem('ejs_service')  || '',
+        template: localStorage.getItem('ejs_template') || '',
+        locatie:  localStorage.getItem('ejs_locatie')  || 'Nader te bepalen',
+        afzender: localStorage.getItem('ejs_afzender') || 'Intakecoördinator',
+        subject:  localStorage.getItem('ejs_subject')  || DEFAULT_SUBJECT,
+        body:     localStorage.getItem('ejs_body')     || DEFAULT_BODY,
+    };
+}
+
+function loadSettingsUI() {
+    const s = getSettings();
+    setVal('set-pubkey',   s.pubkey);
+    setVal('set-service',  s.service);
+    setVal('set-template', s.template);
+    setVal('set-locatie',  s.locatie);
+    setVal('set-afzender', s.afzender);
+    setVal('set-subject',  s.subject  || DEFAULT_SUBJECT);
+    setVal('set-body',     s.body     || DEFAULT_BODY);
+}
+function setVal(id, v) { const e=document.getElementById(id); if(e) e.value=v; }
+
+window.saveSettings = function() {
+    const keys = ['pubkey','service','template','locatie','afzender','subject','body'];
+    const ids  = ['set-pubkey','set-service','set-template','set-locatie','set-afzender','set-subject','set-body'];
+    keys.forEach((k,i) => {
+        const el = document.getElementById(ids[i]);
+        if (el) localStorage.setItem('ejs_'+k, el.value.trim());
+    });
+    showSetStatus('ok', '✅ Instellingen opgeslagen!');
+};
+
+window.sendTestMail = function() {
+    const cfg = getSettings();
+    const testTo = document.getElementById('set-testmail')?.value?.trim();
+    if (!testTo) { showSetStatus('error', '❌ Vul eerst een test-e-mailadres in.'); return; }
+    if (!cfg.pubkey || !cfg.service || !cfg.template) {
+        showSetStatus('error', '❌ Vul eerst de EmailJS Public Key, Service ID en Template ID in en sla op.'); return;
+    }
+    const params = buildMailParams('Test Student', testTo, 'Donderdag', '19 jun', '10:00–12:00', 'Dr. Testdocent', cfg.locatie, cfg.afzender, cfg.subject, cfg.body);
+    emailjs.init({ publicKey: cfg.pubkey });
+    showSetStatus('ok', '📨 Testmail wordt verstuurd…');
+    emailjs.send(cfg.service, cfg.template, params)
+        .then(() => showSetStatus('ok', '✅ Testmail succesvol verstuurd! Controleer je inbox.'))
+        .catch(err => showSetStatus('error', `❌ Fout: ${err?.text || JSON.stringify(err)}`));
+};
+
+function showSetStatus(type, msg) {
+    const el = document.getElementById('setStatus');
+    if (!el) return;
+    el.className = 'set-status ' + type;
+    el.textContent = msg;
+    if (type === 'ok') setTimeout(() => { el.className='set-status'; }, 5000);
+}
+
+function buildMailParams(naam, toEmail, dag, datum, tijd, docent, locatie, afzender, subjectTpl, bodyTpl) {
+    function fill(tpl) {
+        return tpl.replace(/{{naam}}/g, naam)
+                  .replace(/{{dag}}/g, dag)
+                  .replace(/{{datum}}/g, datum)
+                  .replace(/{{tijd}}/g, tijd)
+                  .replace(/{{docent}}/g, docent)
+                  .replace(/{{locatie}}/g, locatie)
+                  .replace(/{{afzender}}/g, afzender);
+    }
+    return {
+        to_email: toEmail,
+        to_name:  naam,
+        subject:  fill(subjectTpl || DEFAULT_SUBJECT),
+        message:  fill(bodyTpl    || DEFAULT_BODY),
+        naam, dag, datum, tijd, docent, locatie, afzender,
+    };
+}
+
+function slotToDateParts(slotKey) {
+    const dagNm   = ['Maandag','Dinsdag','Woensdag','Donderdag','Vrijdag'];
+    const maandNm = ['jan','feb','mrt','apr','mei','jun','jul'];
+    const parts   = slotKey.split('-');
+    const weekNr  = parseInt(parts[0].replace('W',''));
+    const dagIdx  = parseInt(parts[1].replace('D',''));
+    const isO     = slotKey.endsWith('-O');
+    const w       = weeks.find(x => x.week===weekNr);
+    if (!w) return { dag:'?', datum:'?', tijd:'?' };
+    const d = getDates(w.start, w.numDays)[dagIdx] || w.start;
+    return {
+        dag:   dagNm[dagIdx] || '?',
+        datum: d.getDate() + ' ' + maandNm[d.getMonth()] + ' 2026',
+        tijd:  isO ? '10:00–12:00' : '13:00–16:00',
+    };
+}
+
+function sendInviteMail(studentId, student, docent, slotKey) {
+    const cfg = getSettings();
+    if (!cfg.pubkey || !cfg.service || !cfg.template) return; // niet geconfigureerd
+    if (!student.email) return;
+
+    const { dag, datum, tijd } = slotToDateParts(slotKey);
+    const params = buildMailParams(
+        student.naam, student.email, dag, datum, tijd,
+        docent ? docent.naam : '?',
+        cfg.locatie, cfg.afzender, cfg.subject, cfg.body
+    );
+
+    emailjs.init({ publicKey: cfg.pubkey });
+    emailjs.send(cfg.service, cfg.template, params)
+        .then(() => {
+            db.ref('studenten/'+studentId).update({ mailVerzonden: true });
+        })
+        .catch(err => {
+            console.error('EmailJS fout:', err);
+        });
+}
+
+window.resendMail = function(studentId) {
+    const s = _studenten[studentId];
+    if (!s || !s.email) return;
+    const doc = docenten.find(d => d.id===s.docentId);
+    db.ref('studenten/'+studentId).update({ mailVerzonden: false });
+    sendInviteMail(studentId, s, doc, s.slotKey);
+    alert(`📨 Uitnodiging wordt opnieuw verstuurd naar ${s.email}`);
+};
+
+// ════════════════════════════
 //  HELPERS
 // ════════════════════════════
 function slotLabel(slotKey) {
@@ -835,7 +1150,7 @@ function slotLabel(slotKey) {
     const isO    = slotKey.endsWith('-O');
     const w      = weeks.find(x => x.week===parseInt(weekNr));
     if (!w) return slotKey;
-    const dates  = getDates(w.start);
+    const dates  = getDates(w.start, w.numDays);
     return `Wk${weekNr} ${dagNamen[dagIdx] || '?'} ${formatDate(dates[dagIdx])} ${isO?'10–12u':'13–16u'}`;
 }
 
