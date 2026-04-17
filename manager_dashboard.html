@@ -623,7 +623,7 @@
     <!-- ════════════════════ TAB: CAPACITEIT ════════════════════ -->
     <div class="tab-panel" id="tab-capaciteit">
         <div class="card">
-            <div class="card-title">🔢 Capaciteitsplanning — Week 1 (vr 12 jun: 10 gesprekken) + Weken 2–7 (690 gesprekken) = 700 totaal</div>
+            <div class="card-title">🔢 Capaciteitsplanning — Mei (11–13 mei: 30) + Week 1–7 (670 gesprekken) = 700 totaal</div>
             <div class="cap-legend">
                 <div class="cap-legend-item"><div class="cap-legend-dot" style="background:#f0fdf4;border:1px solid #86efac"></div> Dagdeel ingevuld</div>
                 <div class="cap-legend-item"><div class="cap-legend-dot" style="background:#fff5f5;border:1px solid #fca5a5"></div> Dagdeel leeg</div>
@@ -756,13 +756,17 @@ window.addEventListener('load', function () {
         { id:'D15', naam:'Eveline van de Pool' },  { id:'D16', naam:'Vivian van de Wal' },
         { id:'D17', naam:'Lisa Vos' },             { id:'D18', naam:'Franka de Bruijn' },
         { id:'D19', naam:'Niels Lodewijk' },       { id:'D20', naam:'Anass Sbai' },
-        { id:'D21', naam:'Dilan Tsusiz' },         { id:'D22', naam:'Heba Sharaawy' },
-        { id:'D23', naam:'Irene Bakker' },         { id:'D24', naam:'Robert Reijns' },
-        { id:'D25', naam:'Annie van der Velden' },  { id:'D26', naam:'Leon Molijn' },
-        { id:'D27', naam:'Conny Koolmees' }
+        { id:'D22', naam:'Heba Sharaawy' },        { id:'D23', naam:'Irene Bakker' },
+        { id:'D24', naam:'Robert Reijns' },        { id:'D25', naam:'Annie van der Velden' },
+        { id:'D26', naam:'Leon Molijn' },          { id:'D27', naam:'Conny Koolmees' },
+        { id:'D28', naam:'Saphiya Prins' },        { id:'D29', naam:'Sophie Lombaers' },
+        { id:'D30', naam:'David Urban' },          { id:'D31', naam:'Monique Girwar' },
+        { id:'D32', naam:'Dilan Tivsiz' },         { id:'D33', naam:'Heba Offermans' },
+        { id:'D34', naam:'Albertine Nannings' },
     ];
 
     const weeks = [
+        { week:0, label:'Mei',    sublabel:'11–13 mei', start:new Date(2026,4,11), numDays:3 },
         { week:1, label:'Week 1', sublabel:'wo–vr 10–12 jun', start:new Date(2026,5,10), numDays:5 },
         { week:2, label:'Week 2', sublabel:'15–19 jun', start:new Date(2026,5,15), numDays:5 },
         { week:3, label:'Week 3', sublabel:'22–26 jun', start:new Date(2026,5,22), numDays:5 },
@@ -940,7 +944,7 @@ window.addEventListener('load', function () {
     // ── WEEK HEATMAP ──────────────────────────────────────────────────
     function updateWeekHeatmap() {
         const weekCounts = computeWeekCounts();
-        const weekMax = [10, 10, 10, 10, 10, 10, 10]; // slots per week (5 dagen × 2 dagdelen)
+        const weekMax = [6, 10, 10, 10, 10, 10, 10, 10]; // Mei heeft 3 dagen × 2, rest 5 × 2
         const totalMax = weekMax.map(m => m * docenten.length);
 
         const colors = [
@@ -985,7 +989,7 @@ window.addEventListener('load', function () {
 
     function updateWeekChart() {
         const weekCounts = computeWeekCounts();
-        const weekMax = [10,10,10,10,10,10,10].map(m => m * docenten.length);
+        const weekMax = [6,10,10,10,10,10,10,10].map(m => m * docenten.length);
         const pcts = weekCounts.map((c,i) => Math.round((c/weekMax[i])*100));
         const labels = weeks.map(w => w.label + '\n' + w.sublabel);
 
@@ -1109,7 +1113,7 @@ window.addEventListener('load', function () {
 
     // ── CAPACITEITSPLANNING ───────────────────────────────────────────
     // Vrijdag 12 jun: 10 | Week 1: 60 | Week 2: 80 | Week 3: 100 | Week 4: 120 | Week 5: 150 | Week 6: 180
-    const gesprekkenPerWeek = [10, 60, 80, 100, 120, 150, 180];
+    const gesprekkenPerWeek = [30, 10, 60, 80, 100, 120, 150, 180];
 
     function renderCapaciteitOverzicht() {
         const container = document.getElementById('capaciteitContent');
@@ -1219,7 +1223,7 @@ window.addEventListener('load', function () {
             <div>
                 <div style="font-size:14px;font-weight:800;margin-bottom:6px">📊 Totaaloverzicht alle 7 weken</div>
                 <div style="font-size:13px;opacity:0.9">Target: <strong>${totalTarget} gesprekken</strong> &nbsp;|&nbsp; Geplande capaciteit: <strong>${totalCapaciteit} gesprekken</strong> &nbsp;|&nbsp; ${totalStatus}</div>
-            <div style="font-size:11px;opacity:0.7;margin-top:4px">Week 1 (vr 12 jun): 10 · Week 2: 60 · Week 3: 80 · Week 4: 100 · Week 5: 120 · Week 6: 150 · Week 7: 180</div>
+            <div style="font-size:11px;opacity:0.7;margin-top:4px">Mei (11–13 mei): 30 · Week 1: 10 · Week 2: 60 · Week 3: 80 · Week 4: 100 · Week 5: 120 · Week 6: 150 · Week 7: 180</div>
             </div>
             <div style="background:${totalColor};padding:8px 18px;border-radius:20px;font-size:20px;font-weight:800">${totalPct}%</div>
         </div>`;
