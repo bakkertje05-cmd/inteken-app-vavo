@@ -376,12 +376,16 @@
         <div class="card">
             <div class="card-title">📖 Hoe EmailJS instellen?</div>
             <div class="setup-steps">
+                <div style="background:#dcfce7;border-left:4px solid #16a34a;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#15803d;font-weight:600;">
+                    🔒 <strong>Privacy-first:</strong> E-mailadressen van studenten worden <em>uitsluitend lokaal opgeslagen</em> in de browser van dit apparaat. Ze worden nooit naar Firebase of een externe server gestuurd. Alleen namen en planningsstatus staan in de cloud.
+                </div>
                 <ol>
                     <li>Maak een gratis account aan op <a href="https://www.emailjs.com" target="_blank">emailjs.com</a> (gratis tot 200 mails/maand)</li>
                     <li>Voeg een <strong>Email Service</strong> toe (bijv. Gmail of Outlook) → kopieer de <code>Service ID</code></li>
                     <li>Maak een <strong>Email Template</strong> aan met onderstaande variabelen → kopieer de <code>Template ID</code></li>
                     <li>Ga naar <strong>Account → General</strong> → kopieer je <code>Public Key</code></li>
                     <li>Vul de drie codes hieronder in en klik op Opslaan</li>
+                    <li><strong>Gebruik altijd hetzelfde apparaat en browser</strong> voor de planner — e-mailadressen zijn alleen zichtbaar op het apparaat waar je ze hebt ingevoerd</li>
                 </ol>
             </div>
         </div>
@@ -553,10 +557,13 @@ const docenten = [
     { id:'D15', naam:'Eveline van de Pool' }, { id:'D16', naam:'Vivian van de Wal' },
     { id:'D17', naam:'Lisa Vos' },            { id:'D18', naam:'Franka de Bruijn' },
     { id:'D19', naam:'Niels Lodewijk' },      { id:'D20', naam:'Anass Sbai' },
-    { id:'D21', naam:'Dilan Tsusiz' },        { id:'D22', naam:'Heba Sharaawy' },
-    { id:'D23', naam:'Irene Bakker' },        { id:'D24', naam:'Robert Reijns' },
-    { id:'D25', naam:'Annie van der Velden' }, { id:'D26', naam:'Leon Molijn' },
-    { id:'D27', naam:'Conny Koolmees' },
+    { id:'D22', naam:'Heba Sharaawy' },       { id:'D23', naam:'Irene Bakker' },
+    { id:'D24', naam:'Robert Reijns' },       { id:'D25', naam:'Annie van der Velden' },
+    { id:'D26', naam:'Leon Molijn' },         { id:'D27', naam:'Conny Koolmees' },
+    { id:'D28', naam:'Saphiya Prins' },       { id:'D29', naam:'Sophie Lombaers' },
+    { id:'D30', naam:'David Urban' },         { id:'D31', naam:'Monique Girwar' },
+    { id:'D32', naam:'Dilan Tivsiz' },        { id:'D33', naam:'Heba Offermans' },
+    { id:'D34', naam:'Albertine Nannings' },
 ];
 
 const weeks = [
@@ -650,7 +657,10 @@ window.addSingle = function() {
     const naam  = inp.value.trim();
     const email = einp.value.trim().toLowerCase();
     if (!naam) { inp.focus(); return; }
-    db.ref('studenten').push({ naam, email: email || '', ingepland:false, uitgevoerd:false, mailVerzonden:false, docentId:null, slotKey:null });
+    // Sla GEEN e-mailadres op in Firebase — alleen naam en planningsstatus
+    const ref = db.ref('studenten').push({ naam, ingepland:false, uitgevoerd:false, mailVerzonden:false, docentId:null, slotKey:null });
+    // E-mailadres uitsluitend lokaal bewaren in browser
+    if (email) localStorage.setItem('email_' + ref.key, email);
     inp.value = ''; einp.value = ''; inp.focus();
 }
 
@@ -659,18 +669,23 @@ window.addBulk = function() {
     if (!txt) return;
     const regels = txt.split('\n').map(r=>r.trim()).filter(r=>r.length>0);
     if (!regels.length) return;
-    const updates = {};
+    const emails = {}; // tijdelijk bewaren voor na de push
+    let count = 0;
     regels.forEach(regel => {
         const delen = regel.split(';').map(d=>d.trim());
         const naam  = delen[0] || '';
         const email = (delen[1] || '').toLowerCase();
         if (!naam) return;
+        // Alleen naam naar Firebase, GEEN e-mailadres
         const key = db.ref('studenten').push().key;
-        updates['studenten/'+key] = { naam, email, ingepland:false, uitgevoerd:false, mailVerzonden:false, docentId:null, slotKey:null };
+        if (email) emails[key] = email;
+        db.ref('studenten/' + key).set({ naam, ingepland:false, uitgevoerd:false, mailVerzonden:false, docentId:null, slotKey:null });
+        count++;
     });
-    db.ref().update(updates);
+    // E-mailadressen alleen lokaal opslaan
+    Object.entries(emails).forEach(([key, email]) => localStorage.setItem('email_' + key, email));
     document.getElementById('bulkInput').value = '';
-    alert(`✅ ${Object.keys(updates).length} student(en) toegevoegd!`);
+    alert(`✅ ${count} student(en) toegevoegd! E-mailadressen zijn lokaal opgeslagen op dit apparaat.`);
 }
 
 window.setFilter = function(f, btn) {
@@ -694,15 +709,18 @@ function renderStudentenLijst() {
     entries.sort((a,b) => a[1].naam.localeCompare(b[1].naam));
 
     container.innerHTML = entries.map(([id,s]) => {
+        // E-mailadres ALLEEN uit localStorage — staat nooit in Firebase
+        const email = localStorage.getItem('email_' + id) || '';
+
         let badge, meta = '', buttons = '';
 
         // Mail badge
         let mailBadge = '';
-        if (s.email) {
+        if (email) {
             if (s.mailVerzonden) {
-                mailBadge = `<span class="badge badge-mail-sent" title="Uitnodiging verzonden naar ${s.email}">✉️ Mail verzonden</span>`;
+                mailBadge = `<span class="badge badge-mail-sent">✉️ Mail verzonden</span>`;
             } else if (s.ingepland) {
-                mailBadge = `<span class="badge badge-mail-failed" title="Mail nog niet verzonden">⚠️ Mail niet verzonden</span>`;
+                mailBadge = `<span class="badge badge-mail-failed">⚠️ Mail niet verzonden</span>`;
             }
         }
 
@@ -720,7 +738,7 @@ function renderStudentenLijst() {
                 meta = `${doc ? doc.naam : s.docentId} · ${slotLabel(s.slotKey)}`;
             }
             buttons = `
-                ${s.email ? `<button class="btn-sm btn-resend" title="Uitnodiging opnieuw sturen naar ${s.email}" onclick="resendMail('${id}')">✉️ Opnieuw sturen</button>` : ''}
+                ${email ? `<button class="btn-sm btn-resend" title="Uitnodiging opnieuw sturen" onclick="resendMail('${id}')">✉️ Opnieuw</button>` : ''}
                 <button class="btn-sm btn-uitgevoerd" onclick="markUitgevoerd('${id}')">✓ Uitgevoerd</button>
                 <button class="btn-sm btn-unassign"   onclick="unassign('${id}')">↩ Uitplannen</button>`;
         } else {
@@ -731,7 +749,7 @@ function renderStudentenLijst() {
         <div class="student-item ${s.uitgevoerd?'is-uitgevoerd':''}">
             <div style="flex:1">
                 <div class="student-naam">${s.naam}</div>
-                ${s.email ? `<div class="student-email">✉ ${s.email}</div>` : '<div class="student-email" style="color:#fca5a5">Geen e-mailadres</div>'}
+                <div class="student-email">${email ? '✉ Mailadres beschikbaar (lokaal)' : '<span style="color:#fca5a5">Geen mailadres op dit apparaat</span>'}</div>
                 ${meta ? `<div class="student-meta">📅 ${meta}</div>` : ''}
             </div>
             ${mailBadge}
@@ -772,6 +790,8 @@ window.removeStudent = function(id) {
     upd['studenten/'+id] = null;
     if (s.ingepland && s.docentId && s.slotKey) upd[`planning/${s.docentId}/${s.slotKey}/${id}`] = null;
     db.ref().update(upd);
+    // Verwijder ook het lokale e-mailadres
+    localStorage.removeItem('email_' + id);
 }
 
 // ════════════════════════════
@@ -931,16 +951,17 @@ window.assignStudent = function(studentId) {
     const doc = docenten.find(d => d.id===_modalDocentId);
     const upd = {};
     upd[`planning/${_modalDocentId}/${_modalSlotKey}/${studentId}`] = s.naam;
-    upd[`studenten/${studentId}/ingepland`]  = true;
-    upd[`studenten/${studentId}/uitgevoerd`] = false;
-    upd[`studenten/${studentId}/docentId`]   = _modalDocentId;
-    upd[`studenten/${studentId}/slotKey`]    = _modalSlotKey;
+    upd[`studenten/${studentId}/ingepland`]    = true;
+    upd[`studenten/${studentId}/uitgevoerd`]   = false;
+    upd[`studenten/${studentId}/docentId`]     = _modalDocentId;
+    upd[`studenten/${studentId}/slotKey`]      = _modalSlotKey;
     upd[`studenten/${studentId}/mailVerzonden`] = false;
 
     db.ref().update(upd).then(() => {
-        // Verstuur uitnodigingsmail als student een emailadres heeft
-        if (s.email) {
-            sendInviteMail(studentId, s, doc, _modalSlotKey);
+        // E-mailadres uitsluitend uit localStorage halen — staat nooit in Firebase
+        const email = localStorage.getItem('email_' + studentId);
+        if (email) {
+            sendInviteMail(studentId, { naam: s.naam, email }, doc, _modalSlotKey);
         }
     });
     closeModal();
@@ -1110,12 +1131,14 @@ function slotToDateParts(slotKey) {
 
 function sendInviteMail(studentId, student, docent, slotKey) {
     const cfg = getSettings();
-    if (!cfg.pubkey || !cfg.service || !cfg.template) return; // niet geconfigureerd
-    if (!student.email) return;
+    if (!cfg.pubkey || !cfg.service || !cfg.template) return;
+    // E-mailadres komt NOOIT uit Firebase — altijd uit het meegegeven object (localStorage-bron)
+    const email = student.email || localStorage.getItem('email_' + studentId);
+    if (!email) return;
 
     const { dag, datum, tijd } = slotToDateParts(slotKey);
     const params = buildMailParams(
-        student.naam, student.email, dag, datum, tijd,
+        student.naam, email, dag, datum, tijd,
         docent ? docent.naam : '?',
         cfg.locatie, cfg.afzender, cfg.subject, cfg.body
     );
@@ -1132,11 +1155,19 @@ function sendInviteMail(studentId, student, docent, slotKey) {
 
 window.resendMail = function(studentId) {
     const s = _studenten[studentId];
-    if (!s || !s.email) return;
+    if (!s) return;
+    const email = localStorage.getItem('email_' + studentId);
+    if (!email) {
+        // Vraag het adres opnieuw op als het niet lokaal beschikbaar is
+        const nieuw = prompt(`Geen mailadres gevonden voor ${s.naam}.\nVoer het e-mailadres in om opnieuw te versturen:`);
+        if (!nieuw || !nieuw.includes('@')) { alert('Ongeldig e-mailadres.'); return; }
+        localStorage.setItem('email_' + studentId, nieuw.trim().toLowerCase());
+    }
+    const finalEmail = localStorage.getItem('email_' + studentId);
     const doc = docenten.find(d => d.id===s.docentId);
     db.ref('studenten/'+studentId).update({ mailVerzonden: false });
-    sendInviteMail(studentId, s, doc, s.slotKey);
-    alert(`📨 Uitnodiging wordt opnieuw verstuurd naar ${s.email}`);
+    sendInviteMail(studentId, { naam: s.naam, email: finalEmail }, doc, s.slotKey);
+    alert(`📨 Uitnodiging wordt opnieuw verstuurd.`);
 };
 
 // ════════════════════════════
