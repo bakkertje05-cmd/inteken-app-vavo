@@ -125,13 +125,19 @@
                 <option value="D18">Franka de Bruijn</option>
                 <option value="D19">Niels Lodewijk</option>
                 <option value="D20">Anass Sbai</option>
-                <option value="D21">Dilan Tsusiz</option>
                 <option value="D22">Heba Sharaawy</option>
                 <option value="D23">Irene Bakker</option>
                 <option value="D24">Robert Reijns</option>
                 <option value="D25">Annie van der Velden</option>
                 <option value="D26">Leon Molijn</option>
                 <option value="D27">Conny Koolmees</option>
+                <option value="D28">Saphiya Prins</option>
+                <option value="D29">Sophie Lombaers</option>
+                <option value="D30">David Urban</option>
+                <option value="D31">Monique Girwar</option>
+                <option value="D32">Dilan Tivsiz</option>
+                <option value="D33">Heba Offermans</option>
+                <option value="D34">Albertine Nannings</option>
             </select>
 
             <div id="content" style="display: none;">
@@ -225,13 +231,14 @@
         });
 
         const weeks = [
-            { week: 1, start: new Date(2026, 5, 10) },
-            { week: 2, start: new Date(2026, 5, 17) },
-            { week: 3, start: new Date(2026, 5, 24) },
-            { week: 4, start: new Date(2026, 6, 1) },
-            { week: 5, start: new Date(2026, 6, 8) },
-            { week: 6, start: new Date(2026, 6, 15) },
-            { week: 7, start: new Date(2026, 6, 22) }
+            { week: 0, start: new Date(2026, 4, 11), numDays: 3, label: 'Mei' },
+            { week: 1, start: new Date(2026, 5, 10), numDays: 5, label: 'Week 1' },
+            { week: 2, start: new Date(2026, 5, 17), numDays: 5, label: 'Week 2' },
+            { week: 3, start: new Date(2026, 5, 24), numDays: 5, label: 'Week 3' },
+            { week: 4, start: new Date(2026, 6, 1),  numDays: 5, label: 'Week 4' },
+            { week: 5, start: new Date(2026, 6, 8),  numDays: 5, label: 'Week 5' },
+            { week: 6, start: new Date(2026, 6, 15), numDays: 5, label: 'Week 6' },
+            { week: 7, start: new Date(2026, 6, 22), numDays: 5, label: 'Week 7' }
         ];
 
         const days = ['Ma', 'Di', 'Wo', 'Do', 'Vr'];
@@ -243,9 +250,10 @@
             return d.getDate() + ' ' + months[d.getMonth()];
         }
 
-        function getDates(start) {
+        function getDates(start, numDays) {
+            numDays = numDays || 5;
             let dates = [];
-            for (let i = 0; i < 5; i++) {
+            for (let i = 0; i < numDays; i++) {
                 let d = new Date(start);
                 d.setDate(d.getDate() + i);
                 dates.push(d);
@@ -299,8 +307,8 @@
             let html = '';
             let maxUren = getMaxUren();
             weeks.forEach(w => {
-                let dates = getDates(w.start);
-                html += `<div class="week"><h3>Week ${w.week}</h3>`;
+                let dates = getDates(w.start, w.numDays);
+                html += `<div class="week"><h3>${w.label}</h3>`;
                 dates.forEach((date, i) => {
                     let ochtendKey = `W${w.week}-D${i}-O`;
                     let middagKey = `W${w.week}-D${i}-M`;
