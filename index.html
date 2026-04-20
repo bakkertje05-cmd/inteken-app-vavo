@@ -69,6 +69,26 @@
         .confirm-btn:disabled { background: #ccc; cursor: not-allowed; }
         .loading { text-align: center; color: #999; padding: 20px; }
         .special { background: #FFF3CD; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 13px; }
+        /* SECTIE BLOKKEN */
+        .sectie-blok { margin-top: 26px; }
+        .sectie-titel { font-size: 11px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase;
+            padding: 7px 14px; border-radius: 6px 6px 0 0; display: flex; align-items: center; gap: 6px; }
+        .sectie-titel.intake { background: #1F4E78; color: white; }
+        .sectie-titel.advies { background: #d97706; color: white; }
+        .weeks-blok { display: grid; grid-template-columns: repeat(auto-fill,minmax(185px,1fr));
+            gap: 16px; padding: 16px; border-radius: 0 0 8px 8px; }
+        .weeks-blok.intake { background: #eef1fb; }
+        .weeks-blok.advies { background: #fef3c7; }
+        .week.intake-week { background: #f8f9fa; border-left: 4px solid #667eea; }
+        .week.advies-week { background: #fffbeb; border-left: 4px solid #f59e0b; }
+        .week.advies-week h3 { color: #92400e; }
+        .slot-tijd { display: block; font-size: 9px; font-weight: 600; opacity: .8; margin-top: 1px; }
+        .btn.intake-btn { background: #667eea; color: white; }
+        .btn.intake-btn:hover:not(:disabled) { background: #764ba2; }
+        .btn.intake-btn.selected { background: #70AD47; }
+        .btn.advies-btn { background: #f59e0b; color: white; }
+        .btn.advies-btn:hover:not(:disabled) { background: #d97706; }
+        .btn.advies-btn.selected { background: #70AD47; }
         .gesprek-cnt { display: block; font-size: 9px; font-weight: 700; margin-top: 3px; opacity: 0.95; letter-spacing: 0.2px; }
         .gesprek-cnt.has-gesprekken { color: #fff; }
         .gesprek-cnt.geen-gesprekken { color: rgba(255,255,255,0.65); }
@@ -114,7 +134,7 @@
                 <option value="D07">Judith van der Griendt</option>
                 <option value="D08">Helen Hilgeman</option>
                 <option value="D09">Christiaan Hoekstra</option>
-                <option value="D10">Ieke Rozendaal</option>
+                <option value="D10">Marieke Meesters</option>
                 <option value="D11">Liekie Nipius</option>
                 <option value="D12">Zeliha Özmen</option>
                 <option value="D13">Zeliha Yilman</option>
@@ -138,6 +158,9 @@
                 <option value="D32">Dilan Tivsiz</option>
                 <option value="D33">Heba Offermans</option>
                 <option value="D34">Albertine Nannings</option>
+                <option value="D35">Ieke Roozendaal</option>
+                <option value="D36">Rosalie Cerutti</option>
+                <option value="D37">Gabrielle Jansen</option>
             </select>
 
             <div id="content" style="display: none;">
@@ -231,14 +254,17 @@
         });
 
         const weeks = [
-            { week: 0, start: new Date(2026, 4, 11), numDays: 3, label: 'Mei' },
-            { week: 1, start: new Date(2026, 5, 10), numDays: 5, label: 'Week 1' },
-            { week: 2, start: new Date(2026, 5, 17), numDays: 5, label: 'Week 2' },
-            { week: 3, start: new Date(2026, 5, 24), numDays: 5, label: 'Week 3' },
-            { week: 4, start: new Date(2026, 6, 1),  numDays: 5, label: 'Week 4' },
-            { week: 5, start: new Date(2026, 6, 8),  numDays: 5, label: 'Week 5' },
-            { week: 6, start: new Date(2026, 6, 15), numDays: 5, label: 'Week 6' },
-            { week: 7, start: new Date(2026, 6, 22), numDays: 5, label: 'Week 7' }
+            { week:0,  start:new Date(2026,4,11), numDays:3, label:'Mei',      type:'intake' },
+            { week:1,  start:new Date(2026,5,10), numDays:5, label:'Week 1',   type:'intake' },
+            { week:2,  start:new Date(2026,5,17), numDays:5, label:'Week 2',   type:'intake' },
+            { week:3,  start:new Date(2026,5,24), numDays:5, label:'Week 3',   type:'intake' },
+            { week:4,  start:new Date(2026,6,1),  numDays:5, label:'Week 4',   type:'intake' },
+            { week:5,  start:new Date(2026,6,8),  numDays:5, label:'Week 5',   type:'intake' },
+            { week:6,  start:new Date(2026,6,15), numDays:5, label:'Week 6',   type:'intake' },
+            { week:7,  start:new Date(2026,6,22), numDays:5, label:'Week 7',   type:'intake' },
+            { week:20, start:new Date(2026,4,27), numDays:1, label:'Wo 27 mei',type:'advies' },
+            { week:21, start:new Date(2026,5,3),  numDays:1, label:'Wo 3 jun', type:'advies' },
+            { week:22, start:new Date(2026,5,10), numDays:1, label:'Wo 10 jun',type:'advies' },
         ];
 
         const days = ['Ma', 'Di', 'Wo', 'Do', 'Vr'];
@@ -304,42 +330,62 @@
         }
 
         function renderWeeks(docentId, docentInzetten) {
-            let html = '';
-            let maxUren = getMaxUren();
-            weeks.forEach(w => {
-                let dates = getDates(w.start, w.numDays);
-                html += `<div class="week"><h3>${w.label}</h3>`;
-                dates.forEach((date, i) => {
-                    let ochtendKey = `W${w.week}-D${i}-O`;
-                    let middagKey = `W${w.week}-D${i}-M`;
-                    let isOchtendSelected = docentInzetten[ochtendKey];
-                    let isMiddagSelected = docentInzetten[middagKey];
-                    let totalHours = Object.keys(docentInzetten).length * 4;
-                    let canAddMore = totalHours < maxUren;
+            var maxUren = getMaxUren();
 
-                    // Gesprekken tellen per slot
-                    let gespO = isOchtendSelected ? Object.keys(_docentPlanning[ochtendKey] || {}).length : 0;
-                    let gespM = isMiddagSelected  ? Object.keys(_docentPlanning[middagKey]  || {}).length : 0;
-                    let gespOLabel = isOchtendSelected ? `<span class="gesprek-cnt ${gespO > 0 ? 'has-gesprekken' : 'geen-gesprekken'}">${gespO}/5 gesprek${gespO !== 1 ? 'ken' : ''}</span>` : '';
-                    let gespMLabel = isMiddagSelected  ? `<span class="gesprek-cnt ${gespM > 0 ? 'has-gesprekken' : 'geen-gesprekken'}">${gespM}/7 gesprek${gespM !== 1 ? 'ken' : ''}</span>` : '';
+            function renderDag(w, date, i) {
+                var isAdvies = w.type === 'advies';
+                var oKey = 'W' + w.week + '-D' + i + '-O';
+                var mKey = 'W' + w.week + '-D' + i + '-M';
+                var oSel = !!docentInzetten[oKey];
+                var mSel = !!docentInzetten[mKey];
+                var canAdd = Object.keys(docentInzetten).length * 4 < maxUren;
+                var btnClass  = isAdvies ? 'btn advies-btn' : 'btn intake-btn';
+                var slotOTijd = isAdvies ? '09:30-11:30' : '10:00-12:00';
+                var slotMTijd = isAdvies ? '13:30-15:30' : '13:00-16:00';
+                var gespO = oSel ? Object.keys(_docentPlanning[oKey] || {}).length : 0;
+                var gespM = mSel ? Object.keys(_docentPlanning[mKey] || {}).length : 0;
+                var cntO = oSel ? '<span class="gesprek-cnt ' + (gespO>0?'has-gesprekken':'geen-gesprekken') + '">' + gespO + '/5 gesprekken</span>' : '';
+                var cntM = mSel ? '<span class="gesprek-cnt ' + (gespM>0?'has-gesprekken':'geen-gesprekken') + '">' + gespM + '/7 gesprekken</span>' : '';
+                return '<div class="day">'
+                    + '<div class="day-name">' + days[i] + '</div>'
+                    + '<div class="day-date">' + formatDate(date) + '</div>'
+                    + '<button class="' + btnClass + (oSel?' selected':'') + ((!canAdd&&!oSel)?' disabled':'') + '"'
+                    + ' onclick="toggleInzet(\'' + docentId + '\',\'' + oKey + '\')">'
+                    + (oSel ? '\u2713 ' : '') + 'Ochtend'
+                    + '<span class="slot-tijd">' + slotOTijd + '</span>' + cntO
+                    + '</button>'
+                    + '<button class="' + btnClass + (mSel?' selected':'') + ((!canAdd&&!mSel)?' disabled':'') + '"'
+                    + ' onclick="toggleInzet(\'' + docentId + '\',\'' + mKey + '\')">'
+                    + (mSel ? '\u2713 ' : '') + 'Middag'
+                    + '<span class="slot-tijd">' + slotMTijd + '</span>' + cntM
+                    + '</button>'
+                    + '</div>';
+            }
 
-                    html += `
-                        <div class="day">
-                            <div class="day-name">${days[i]}</div>
-                            <div class="day-date">${formatDate(date)}</div>
-                            <button class="btn ${isOchtendSelected ? 'selected' : ''} ${!canAddMore && !isOchtendSelected ? 'disabled' : ''}"
-                                onclick="toggleInzet('${docentId}', '${ochtendKey}')">
-                                O ${isOchtendSelected ? '✓' : ''}${gespOLabel}
-                            </button>
-                            <button class="btn ${isMiddagSelected ? 'selected' : ''} ${!canAddMore && !isMiddagSelected ? 'disabled' : ''}"
-                                onclick="toggleInzet('${docentId}', '${middagKey}')">
-                                M ${isMiddagSelected ? '✓' : ''}${gespMLabel}
-                            </button>
-                        </div>`;
+            function renderBlok(titel, type, wekenArr) {
+                if (!wekenArr.length) return '';
+                var wc = type === 'advies' ? 'advies-week' : 'intake-week';
+                var h = '<div class="sectie-blok">'
+                      + '<div class="sectie-titel ' + type + '">' + titel + '</div>'
+                      + '<div class="weeks-blok ' + type + '">';
+                wekenArr.forEach(function(w) {
+                    var dates = getDates(w.start, w.numDays);
+                    h += '<div class="week ' + wc + '"><h3>' + w.label + '</h3>';
+                    dates.forEach(function(date, i) { h += renderDag(w, date, i); });
+                    h += '</div>';
                 });
-                html += '</div>';
-            });
-            document.getElementById('weeks').innerHTML = html;
+                h += '</div></div>';
+                return h;
+            }
+
+            var rMei  = weeks.filter(function(w){ return w.type==='intake' && w.week===0; });
+            var rAdv  = weeks.filter(function(w){ return w.type==='advies'; });
+            var rJuni = weeks.filter(function(w){ return w.type==='intake' && w.week>=1; });
+
+            document.getElementById('weeks').innerHTML =
+                renderBlok('Gespreksblokken Mei', 'intake', rMei)
+              + renderBlok('Advies-inloopdagen: 09:30-11:30 en 13:30-15:30', 'advies', rAdv)
+              + renderBlok('Gespreksblokken Juni en Juli', 'intake', rJuni);
         }
 
         window.toggleInzet = function(docentId, key) {
