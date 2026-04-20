@@ -513,27 +513,8 @@ const db = firebase.database();
 const banner = document.getElementById('firebaseBanner');
 db.ref('.info/connected').on('value', snap => {
     if (snap.val() === true) {
-        // Test schrijven naar een pad dat door de Firebase Rules is toegestaan
-        const testRef = db.ref('_planner_test');
-        testRef.set({ ts: Date.now() })
-          .then(() => {
-              testRef.remove();
-              banner.className = 'ok';
-              banner.innerHTML = '✅ Firebase verbonden — lezen &amp; schrijven werkt.';
-          })
-          .catch(() => {
-              // Schrijven naar root geblokkeerd — probeer studenten-pad
-              db.ref('studenten/_conn_test').set({ ts: Date.now() })
-                .then(() => {
-                    db.ref('studenten/_conn_test').remove();
-                    banner.className = 'ok';
-                    banner.innerHTML = '✅ Firebase verbonden — lezen &amp; schrijven werkt.';
-                })
-                .catch(err => {
-                    banner.className = 'error';
-                    banner.innerHTML = `❌ Schrijven geblokkeerd. Open <strong>Firebase Console → Realtime Database → Rules</strong> en zorg dat schrijven is toegestaan voor de paden <code>studenten</code>, <code>planning</code> en <code>inzetten</code>.`;
-                });
-          });
+        banner.className = 'ok';
+        banner.innerHTML = '✅ Firebase verbonden.';
     } else {
         banner.className = 'error';
         banner.innerHTML = '🔴 Geen verbinding met Firebase. Controleer je internetverbinding.';
