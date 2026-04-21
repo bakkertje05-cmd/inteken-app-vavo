@@ -481,19 +481,6 @@ function checkPassword() {
 }
 
 // ════════════════════════════
-//  TABS
-// ════════════════════════════
-function switchTab(name, btn) {
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('tab-' + name).classList.add('active');
-    btn.classList.add('active');
-    if (name === 'overzicht') renderOverzicht();
-    if (name === 'inplannen' && _currentWeek) renderGrid();
-    if (name === 'instellingen') loadSettingsUI();
-}
-
-// ════════════════════════════
 //  FIREBASE INIT
 // ════════════════════════════
 window.addEventListener('load', function () {
@@ -532,7 +519,7 @@ const docenten = [
     { id:'D03', naam:'Bea Blumenstein' },     { id:'D04', naam:'Jochem Borst' },
     { id:'D05', naam:'Ineke Braam' },         { id:'D06', naam:'Hans Brunt' },
     { id:'D07', naam:'Judith van der Griendt'},{ id:'D08', naam:'Helen Hilgeman' },
-    { id:'D09', naam:'Christiaan Hoekstra' }, { id:'D10', naam:'Ieke Roozendaal' },
+    { id:'D09', naam:'Christiaan Hoekstra' }, { id:'D10', naam:'Marieke Meesters' },
     { id:'D11', naam:'Liekie Nipius' },       { id:'D12', naam:'Zeliha Özmen' },
     { id:'D13', naam:'Zeliha Yilman' },       { id:'D14', naam:'Esma Yüzgec' },
     { id:'D15', naam:'Eveline van de Pool' }, { id:'D16', naam:'Vivian van de Wal' },
@@ -555,7 +542,10 @@ const weeks = [
     { week:4, label:'Week 4', start:new Date(2026,6,1),  numDays:5 },
     { week:5, label:'Week 5', start:new Date(2026,6,8),  numDays:5 },
     { week:6, label:'Week 6', start:new Date(2026,6,15), numDays:5 },
-    { week:7, label:'Week 7', start:new Date(2026,6,22), numDays:5 },
+    { week:7,  label:'Week 7',        start:new Date(2026,6,22), numDays:5 },
+    { week:20, label:'Advies 27 mei', start:new Date(2026,4,27), numDays:1 },
+    { week:21, label:'Advies 3 jun',  start:new Date(2026,5,3),  numDays:1 },
+    { week:22, label:'Advies 10 jun', start:new Date(2026,5,10), numDays:1 },
 ];
 const dagNamen   = ['Ma','Di','Wo','Do','Vr'];
 const maandNamen = ['jan','feb','mrt','apr','mei','jun','jul'];
@@ -582,6 +572,20 @@ let _modalSlotKey  = null;
 db.ref('inzetten').on('value', snap  => { _inzetten  = snap.val() || {}; refreshAll(); });
 db.ref('studenten').on('value', snap => { _studenten = snap.val() || {}; refreshAll(); });
 db.ref('planning').on('value', snap  => { _planning  = snap.val() || {}; refreshAll(); });
+
+
+// ════════════════════════════
+//  TABS
+// ════════════════════════════
+window.switchTab = function(name, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    btn.classList.add('active');
+    if (name === 'overzicht') window.renderOverzicht();
+    if (name === 'inplannen') window.renderGrid();
+    if (name === 'instellingen') window.loadSettingsUI();
+};
 
 function refreshAll() {
     updateStats();
@@ -802,7 +806,7 @@ function selectWeek(n, btn) {
 // ════════════════════════════
 //  INPLANNEN: GRID
 // ════════════════════════════
-function renderGrid() {
+window.renderGrid = function() {
     const w = weeks.find(x => x.week===_currentWeek);
     if (!w) return;
     const dates = getDates(w.start, w.numDays);
@@ -962,7 +966,7 @@ window.removeFromSlot = function(docentId, slotKey, studentId) {
 // ════════════════════════════
 //  OVERZICHT
 // ════════════════════════════
-function renderOverzicht() {
+window.renderOverzicht = function() {
     const entries = Object.entries(_studenten).sort((a,b) => a[1].naam.localeCompare(b[1].naam));
     const wachtArr   = entries.filter(([,s]) => !s.ingepland && !s.uitgevoerd);
     const geplandArr = entries.filter(([,s]) =>  s.ingepland && !s.uitgevoerd);
@@ -1029,7 +1033,7 @@ function getSettings() {
     };
 }
 
-function loadSettingsUI() {
+window.loadSettingsUI = function() {
     const s = getSettings();
     setVal('set-pubkey',   s.pubkey);
     setVal('set-service',  s.service);
