@@ -93,6 +93,18 @@
         .btn.advies-btn { background: #f59e0b; color: white; }
         .btn.advies-btn:hover:not(:disabled) { background: #d97706; }
         .btn.advies-btn.selected { background: #70AD47; }
+        .slot-disabled {
+            width: 100%; padding: 8px; margin-top: 8px;
+            background: #f0f0f0; color: #888; border: 1px dashed #c5c5c5;
+            border-radius: 4px; font-size: 11px; font-weight: bold;
+            text-align: center; font-style: italic;
+        }
+        .day.day-closed { background: #f5f5f5; border: 1px dashed #c5c5c5; opacity: 0.75; }
+        .day.day-closed .day-name, .day.day-closed .day-date { color: #888; }
+        .day-closed-msg {
+            margin-top: 14px; padding: 10px; text-align: center;
+            font-size: 12px; font-weight: bold; color: #888; font-style: italic;
+        }
         .gesprek-cnt { display: block; font-size: 9px; font-weight: 700; margin-top: 3px; opacity: 0.95; letter-spacing: 0.2px; }
         .gesprek-cnt.has-gesprekken { color: #fff; }
         .gesprek-cnt.geen-gesprekken { color: rgba(255,255,255,0.65); }
@@ -118,7 +130,7 @@
                 <strong>📋 Instructie:</strong><br>
                 1. Selecteer je naam in het dropdown menu<br>
                 2. Plan dagdelen in tot je aan de 40 uur bent<br>
-                3. Let op: Plan tenminste een aantal dagdelen in de <strong>laatste twee weken</strong> (week 6 & 7)<br>
+                3. Let op: Plan tenminste een aantal dagdelen in de <strong>laatste twee weken</strong> (week 5 & 6)<br>
                 4. Bevestig je inzetting wanneer je klaar bent
             </div>
         </div>
@@ -259,17 +271,30 @@
 
         const weeks = [
             { week:0,  start:new Date(2026,4,11), numDays:3, label:'Mei',      type:'intake' },
-            { week:1,  start:new Date(2026,5,10), numDays:5, label:'Week 1',   type:'intake' },
-            { week:2,  start:new Date(2026,5,17), numDays:5, label:'Week 2',   type:'intake' },
-            { week:3,  start:new Date(2026,5,24), numDays:5, label:'Week 3',   type:'intake' },
-            { week:4,  start:new Date(2026,6,1),  numDays:5, label:'Week 4',   type:'intake' },
-            { week:5,  start:new Date(2026,6,8),  numDays:5, label:'Week 5',   type:'intake' },
-            { week:6,  start:new Date(2026,6,15), numDays:5, label:'Week 6',   type:'intake' },
-            { week:7,  start:new Date(2026,6,22), numDays:5, label:'Week 7',   type:'intake' },
+            { week:1,  start:new Date(2026,5,8),  numDays:5, label:'Week 1',   type:'intake' },
+            { week:2,  start:new Date(2026,5,15), numDays:5, label:'Week 2',   type:'intake' },
+            { week:3,  start:new Date(2026,5,22), numDays:5, label:'Week 3',   type:'intake' },
+            { week:4,  start:new Date(2026,5,29), numDays:5, label:'Week 4',   type:'intake' },
+            { week:5,  start:new Date(2026,6,6),  numDays:5, label:'Week 5',   type:'intake' },
+            { week:6,  start:new Date(2026,6,13), numDays:5, label:'Week 6',   type:'intake' },
             { week:20, start:new Date(2026,4,27), numDays:1, label:'Wo 27 mei',type:'advies' },
             { week:21, start:new Date(2026,5,3),  numDays:1, label:'Wo 3 jun', type:'advies' },
             { week:22, start:new Date(2026,5,10), numDays:1, label:'Wo 10 jun',type:'advies' },
         ];
+
+        // Dagdelen die niet beschikbaar zijn (geen gesprekken mogelijk)
+        const disabledSlots = {
+            'W2-D0-M': true,  // Ma 15 juni: geen middag
+            'W3-D3-M': true,  // Do 25 juni: geen middag
+            'W4-D1-O': true,  // Di 30 juni: geen gesprekken
+            'W4-D1-M': true,
+            'W4-D3-O': true,  // Do 2 juli: alleen middag
+            'W5-D2-O': true,  // Wo 8 juli: gehele dag verwijderd
+            'W5-D2-M': true,
+            'W5-D4-O': true,  // Vr 10 juli: geen gesprekken
+            'W5-D4-M': true,
+            'W6-D3-M': true,  // Do 16 juli: geen middag
+        };
 
         const days = ['Ma', 'Di', 'Wo', 'Do', 'Vr'];
         const months = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul'];
@@ -340,30 +365,46 @@
                 var isAdvies = w.type === 'advies';
                 var oKey = 'W' + w.week + '-D' + i + '-O';
                 var mKey = 'W' + w.week + '-D' + i + '-M';
+                var oDisabled = !!disabledSlots[oKey];
+                var mDisabled = !!disabledSlots[mKey];
+                var bothDisabled = oDisabled && mDisabled;
                 var oSel = !!docentInzetten[oKey];
                 var mSel = !!docentInzetten[mKey];
                 var canAdd = Object.keys(docentInzetten).length * 4 < maxUren;
                 var btnClass  = isAdvies ? 'btn advies-btn' : 'btn intake-btn';
                 var slotOTijd = isAdvies ? '09:30-11:30' : '10:00-12:00';
                 var slotMTijd = isAdvies ? '13:30-15:30' : '13:00-16:00';
+
+                var header = '<div class="day-name">' + days[i] + '</div>'
+                           + '<div class="day-date">' + formatDate(date) + '</div>';
+
+                if (bothDisabled) {
+                    return '<div class="day day-closed">' + header
+                         + '<div class="day-closed-msg">Geen gesprekken</div></div>';
+                }
+
                 var gespO = oSel ? Object.keys(_docentPlanning[oKey] || {}).length : 0;
                 var gespM = mSel ? Object.keys(_docentPlanning[mKey] || {}).length : 0;
                 var cntO = oSel ? '<span class="gesprek-cnt ' + (gespO>0?'has-gesprekken':'geen-gesprekken') + '">' + gespO + '/5 gesprekken</span>' : '';
                 var cntM = mSel ? '<span class="gesprek-cnt ' + (gespM>0?'has-gesprekken':'geen-gesprekken') + '">' + gespM + '/7 gesprekken</span>' : '';
-                return '<div class="day">'
-                    + '<div class="day-name">' + days[i] + '</div>'
-                    + '<div class="day-date">' + formatDate(date) + '</div>'
-                    + '<button class="' + btnClass + (oSel?' selected':'') + ((!canAdd&&!oSel)?' disabled':'') + '"'
-                    + ' onclick="toggleInzet(\'' + docentId + '\',\'' + oKey + '\')">'
-                    + (oSel ? '\u2713 ' : '') + 'Ochtend'
-                    + '<span class="slot-tijd">' + slotOTijd + '</span>' + cntO
-                    + '</button>'
-                    + '<button class="' + btnClass + (mSel?' selected':'') + ((!canAdd&&!mSel)?' disabled':'') + '"'
-                    + ' onclick="toggleInzet(\'' + docentId + '\',\'' + mKey + '\')">'
-                    + (mSel ? '\u2713 ' : '') + 'Middag'
-                    + '<span class="slot-tijd">' + slotMTijd + '</span>' + cntM
-                    + '</button>'
-                    + '</div>';
+
+                var ochtendBlok = oDisabled
+                    ? '<div class="slot-disabled">Geen ochtend</div>'
+                    : '<button class="' + btnClass + (oSel?' selected':'') + ((!canAdd&&!oSel)?' disabled':'') + '"'
+                      + ' onclick="toggleInzet(\'' + docentId + '\',\'' + oKey + '\')">'
+                      + (oSel ? '\u2713 ' : '') + 'Ochtend'
+                      + '<span class="slot-tijd">' + slotOTijd + '</span>' + cntO
+                      + '</button>';
+
+                var middagBlok = mDisabled
+                    ? '<div class="slot-disabled">Geen middag</div>'
+                    : '<button class="' + btnClass + (mSel?' selected':'') + ((!canAdd&&!mSel)?' disabled':'') + '"'
+                      + ' onclick="toggleInzet(\'' + docentId + '\',\'' + mKey + '\')">'
+                      + (mSel ? '\u2713 ' : '') + 'Middag'
+                      + '<span class="slot-tijd">' + slotMTijd + '</span>' + cntM
+                      + '</button>';
+
+                return '<div class="day">' + header + ochtendBlok + middagBlok + '</div>';
             }
 
             function renderBlok(titel, type, wekenArr) {
