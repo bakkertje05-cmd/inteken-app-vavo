@@ -531,17 +531,17 @@ const docenten = [
     { id:'D28', naam:'Saphiya Prins' },       { id:'D29', naam:'Sophie Lombaers' },
     { id:'D30', naam:'David Urban' },         { id:'D31', naam:'Monique Girwar' },
     { id:'D32', naam:'Dilan Tivsiz' },        { id:'D33', naam:'Heba Offermans' },
-    { id:'D34', naam:'Albertine Nannings' },  { id:'D35', naam:'Li-Ann Croes' },
+    { id:'D34', naam:'Albertine Nannings' },
+];
 
 const weeks = [
-    { week:0, label:'Mei',    start:new Date(2026,4,11), numDays:3 },
-    { week:1, label:'Week 1', start:new Date(2026,5,10), numDays:5 },
-    { week:2, label:'Week 2', start:new Date(2026,5,17), numDays:5 },
-    { week:3, label:'Week 3', start:new Date(2026,5,24), numDays:5 },
-    { week:4, label:'Week 4', start:new Date(2026,6,1),  numDays:5 },
-    { week:5, label:'Week 5', start:new Date(2026,6,8),  numDays:5 },
-    { week:6, label:'Week 6', start:new Date(2026,6,15), numDays:5 },
-    { week:7,  label:'Week 7',        start:new Date(2026,6,22), numDays:5 },
+    { week:0,  label:'Mei',           start:new Date(2026,4,11), numDays:3 },
+    { week:23, label:'Vr 11 jun',     start:new Date(2026,5,11), numDays:1 },
+    { week:1,  label:'Week 1',        start:new Date(2026,5,15), numDays:5 },
+    { week:2,  label:'Week 2',        start:new Date(2026,5,22), numDays:5 },
+    { week:3,  label:'Week 3',        start:new Date(2026,5,29), numDays:5 },
+    { week:4,  label:'Week 4 (voorlaatste)', start:new Date(2026,6,6),  numDays:5 },
+    { week:5,  label:'Week 5 (laatste)',      start:new Date(2026,6,13), numDays:5 },
     { week:20, label:'Advies 27 mei', start:new Date(2026,4,27), numDays:1 },
     { week:21, label:'Advies 3 jun',  start:new Date(2026,5,3),  numDays:1 },
     { week:22, label:'Advies 10 jun', start:new Date(2026,5,10), numDays:1 },
@@ -781,7 +781,7 @@ window.removeStudent = function(id) {
 // ════════════════════════════
 //  INPLANNEN: WEEK TABS
 // ════════════════════════════
-function buildWeekTabs() {
+window.buildWeekTabs = function() {
     const c = document.getElementById('weekTabs');
     c.innerHTML = weeks.map(w => {
         const dates = getDates(w.start, w.numDays);
@@ -795,7 +795,7 @@ function buildWeekTabs() {
     }).join('');
 }
 
-function selectWeek(n, btn) {
+window.selectWeek = function(n, btn) {
     _currentWeek = n;
     document.querySelectorAll('.week-tab').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
