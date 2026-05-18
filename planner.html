@@ -137,6 +137,11 @@
         .cap-warn { background: #FFF3CD; color: #7d5a00; }
         .cap-full { background: #FFE5E5; color: #9C0006; }
         .student-chips { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 5px; }
+        .student-chips.is-ochtend { flex-direction: column; flex-wrap: nowrap; gap: 2px; }
+        .chip-row { display: flex; align-items: center; gap: 4px; }
+        .chip-row.empty-row { opacity: .55; }
+        .slot-tijd { font-size: 9px; font-weight: 800; color: var(--brand-purple2); background: #ede9fe; padding: 2px 5px; border-radius: 4px; white-space: nowrap; letter-spacing: .2px; min-width: 70px; text-align: center; }
+        .slot-leeg { font-size: 9px; font-style: italic; color: #9ca3af; padding: 2px 4px; }
         .chip { display: flex; align-items: center; gap: 2px; padding: 2px 7px; border-radius: 10px; font-size: 9px; font-weight: 700; }
         .chip.pending  { background: #dde8fe; color: var(--brand-blue); }
         .chip.done     { background: #cffafe; color: #0e7490; }
@@ -243,7 +248,7 @@
 <div class="top-bar">
     <div class="top-bar-inner">
         <h1>📋 Planningstool — INTAKEWEKEN 2026</h1>
-        <p>Studenten indelen &amp; bijhouden · Ochtend (10–12u) max 5 · Middag (13–16u) max 7 gesprekken per docent</p>
+        <p>Studenten indelen &amp; bijhouden · Ochtend 10:00–11:55 (5 × 15 min, 10 min pauze) · Middag 13–16u max 7 gesprekken per docent</p>
         <nav class="tab-nav">
             <button class="tab-btn active" onclick="switchTab('studenten',this)">👥 Studentenlijst</button>
             <button class="tab-btn" onclick="switchTab('inplannen',this)">📆 Inplannen</button>
@@ -514,6 +519,24 @@ db.ref('.info/connected').on('value', snap => {
 const MAX_O = 5;
 const MAX_M = 7;
 
+// Vaste tijdstippen ochtend (5 gesprekken × 15 min, met 10 min pauze)
+const OCHTEND_TIMES = [
+    '10:00–10:15',
+    '10:25–10:40',
+    '10:50–11:05',
+    '11:15–11:30',
+    '11:40–11:55'
+];
+
+// Korte versie (alleen begintijd) voor compacte weergave in chips
+const OCHTEND_TIMES_SHORT = ['10:00','10:25','10:50','11:15','11:40'];
+
+// Helper: zoek positie (0-4) van een student in een slot
+function slotPosition(docentId, slotKey, studentId) {
+    const ids = Object.keys((_planning[docentId]||{})[slotKey] || {});
+    return ids.indexOf(studentId);
+}
+
 const docenten = [
     { id:'D01', naam:'Hendrikje Balkenende' },{ id:'D02', naam:'Rosanne Bartels' },
     { id:'D03', naam:'Bea Blumenstein' },     { id:'D04', naam:'Jochem Borst' },
@@ -536,7 +559,7 @@ const docenten = [
 
 const weeks = [
     { week:0,  label:'Mei',           start:new Date(2026,4,11), numDays:3 },
-    { week:23, label:'Vr 11 jun',     start:new Date(2026,5,11), numDays:1 },
+    { week:23, label:'Vr 12 jun',     start:new Date(2026,5,12), numDays:1 },
     { week:1,  label:'Week 1',        start:new Date(2026,5,15), numDays:5 },
     { week:2,  label:'Week 2',        start:new Date(2026,5,22), numDays:5 },
     { week:3,  label:'Week 3',        start:new Date(2026,5,29), numDays:5 },
@@ -712,14 +735,14 @@ function renderStudentenLijst() {
             badge = `<span class="badge badge-uitgevoerd">✓ Uitgevoerd</span>`;
             if (s.docentId && s.slotKey) {
                 const doc = docenten.find(d => d.id===s.docentId);
-                meta = `${doc ? doc.naam : s.docentId} · ${slotLabel(s.slotKey)}`;
+                meta = `${doc ? doc.naam : s.docentId} · ${slotLabel(s.slotKey, id)}`;
             }
             buttons = `<button class="btn-sm btn-undo-uit" onclick="unmarkUitgevoerd('${id}')">↩ Ongedaan</button>`;
         } else if (s.ingepland) {
             badge = `<span class="badge badge-gepland">📅 Ingepland</span>`;
             if (s.docentId && s.slotKey) {
                 const doc = docenten.find(d => d.id===s.docentId);
-                meta = `${doc ? doc.naam : s.docentId} · ${slotLabel(s.slotKey)}`;
+                meta = `${doc ? doc.naam : s.docentId} · ${slotLabel(s.slotKey, id)}`;
             }
             buttons = `
                 ${email ? `<button class="btn-sm btn-resend" title="Uitnodiging opnieuw sturen" onclick="resendMail('${id}')">✉️ Opnieuw</button>` : ''}
@@ -818,7 +841,7 @@ window.renderGrid = function() {
 
     // Ochtend
     html += '<tr>';
-    html += `<td class="plan-td"><div style="padding:8px;text-align:center;background:#ede9fe;border-radius:8px;font-size:11px;font-weight:800;color:#6d28d9">🌅 Ochtend<br>10–12u<br><span style="font-weight:500;font-size:10px">max ${MAX_O}</span></div></td>`;
+    html += `<td class="plan-td"><div style="padding:8px;text-align:center;background:#ede9fe;border-radius:8px;font-size:11px;font-weight:800;color:#6d28d9">🌅 Ochtend<br>10:00–11:55<br><span style="font-weight:500;font-size:10px">5 × 15 min</span></div></td>`;
     dates.forEach((_,i) => {
         const sk = `W${_currentWeek}-D${i}-O`;
         const avail = docenten.filter(d => _inzetten[d.id]?.[sk]);
@@ -853,20 +876,32 @@ function renderDocentSlot(docent, slotKey, maxCount) {
     const safeDoc  = docent.id;
     const safeSlot = slotKey.replace(/'/g,"\\'");
     const safeNaam = docent.naam.replace(/'/g,"\\'");
+    const isO = slotKey.endsWith('-O');
 
     // Chips met ✓ (uitgevoerd) of ✕ (verwijderen)
-    let chips = Object.entries(assigned).map(([sid, naam]) => {
+    // Voor de OCHTEND: elke student krijgt zijn vaste tijdslot ervoor
+    let chips = Object.entries(assigned).map(([sid, naam], index) => {
         const s = _studenten[sid];
         const isDone = s?.uitgevoerd;
+        const tijd = isO ? OCHTEND_TIMES[index] : null;
+        const tijdHtml = tijd ? `<span class="slot-tijd">${tijd}</span>` : '';
         if (isDone) {
-            return `<div class="chip done" title="Uitgevoerd">✓ ${naam}</div>`;
+            return `<div class="chip-row">${tijdHtml}<div class="chip done" title="Uitgevoerd">✓ ${naam}</div></div>`;
         } else {
-            return `<div class="chip pending">${naam}
+            return `<div class="chip-row">${tijdHtml}<div class="chip pending">${naam}
                 <span class="chip-check" title="Markeer als uitgevoerd" onclick="markUitgevoerd('${sid}')">✓</span>
                 <span class="chip-x" title="Verwijder uit slot" onclick="removeFromSlot('${safeDoc}','${safeSlot}','${sid}')">✕</span>
-            </div>`;
+            </div></div>`;
         }
     }).join('');
+
+    // Voor de ochtend ook een rij voor elk nog leeg tijdslot tonen
+    let emptyRows = '';
+    if (isO && !isFull) {
+        for (let i = count; i < maxCount; i++) {
+            emptyRows += `<div class="chip-row empty-row"><span class="slot-tijd">${OCHTEND_TIMES[i]}</span><span class="slot-leeg">— vrij —</span></div>`;
+        }
+    }
 
     return `
     <div class="docent-slot">
@@ -874,7 +909,7 @@ function renderDocentSlot(docent, slotKey, maxCount) {
             <span class="docent-slot-name" title="${docent.naam}">${korteNaam}</span>
             <span class="cap-badge ${capClass}">${count}/${maxCount}</span>
         </div>
-        ${chips ? `<div class="student-chips">${chips}</div>` : ''}
+        ${chips || emptyRows ? `<div class="student-chips ${isO ? 'is-ochtend' : ''}">${chips}${emptyRows}</div>` : ''}
         <button class="btn-slot-add" ${isFull ? 'disabled' : `onclick="openModal('${safeDoc}','${safeSlot}','${safeNaam}')"`}>
             ${isFull ? '🚫 Vol' : '+ Student'}
         </button>
@@ -893,9 +928,17 @@ window.openModal = function(docentId, slotKey, docentNaam) {
     const dates = getDates(w.start, w.numDays);
     const max = isO ? MAX_O : MAX_M;
     const count = Object.keys(_planning[docentId]?.[slotKey]||{}).length;
+    // Voor de ochtend: laat zien welk specifiek tijdslot de volgende student krijgt
+    let tijdInfo;
+    if (isO) {
+        const volgende = OCHTEND_TIMES[count] || '—';
+        tijdInfo = `10:00–11:55 &nbsp;<span style="color:#7c3aed;font-weight:700">(volgend slot: ${volgende})</span>`;
+    } else {
+        tijdInfo = '13:00–16:00';
+    }
     document.getElementById('modalCtx').innerHTML =
         `<strong>Docent:</strong> ${docentNaam}<br>
-         <strong>Datum:</strong> ${dagNamen[dayIdx]} ${formatDate(dates[dayIdx])} &nbsp; <strong>Tijd:</strong> ${isO?'10:00–12:00':'13:00–16:00'}<br>
+         <strong>Datum:</strong> ${dagNamen[dayIdx]} ${formatDate(dates[dayIdx])} &nbsp; <strong>Tijd:</strong> ${tijdInfo}<br>
          <strong>Bezetting:</strong> ${count}/${max} plaatsen`;
     document.getElementById('mSearch').value = '';
     filterPick();
@@ -971,19 +1014,19 @@ window.renderOverzicht = function() {
     const geplandArr = entries.filter(([,s]) =>  s.ingepland && !s.uitgevoerd);
     const uitArr     = entries.filter(([,s]) =>  s.uitgevoerd);
 
-    setList('ov-wachtLijst', wachtArr, 'orange', s => '⏳ Open',
+    setList('ov-wachtLijst', wachtArr, 'orange', (s,id) => '⏳ Open',
             '✅ Alle studenten zijn ingepland of uitgevoerd!');
 
-    setList('ov-geplandLijst', geplandArr, 'green', s => {
+    setList('ov-geplandLijst', geplandArr, 'green', (s,id) => {
         if (!s.docentId || !s.slotKey) return '📅 Ingepland';
         const doc = docenten.find(d => d.id===s.docentId);
-        return (doc ? doc.naam.split(' ')[0] : '?') + ' · ' + slotLabel(s.slotKey);
+        return (doc ? doc.naam.split(' ')[0] : '?') + ' · ' + slotLabel(s.slotKey, id);
     }, 'Nog niemand ingepland.');
 
-    setList('ov-uitgevoerdLijst', uitArr, 'teal', s => {
+    setList('ov-uitgevoerdLijst', uitArr, 'teal', (s,id) => {
         if (!s.docentId || !s.slotKey) return '✓ Uitgevoerd';
         const doc = docenten.find(d => d.id===s.docentId);
-        return (doc ? doc.naam.split(' ')[0] : '?') + ' · ' + slotLabel(s.slotKey);
+        return (doc ? doc.naam.split(' ')[0] : '?') + ' · ' + slotLabel(s.slotKey, id);
     }, 'Nog geen gesprekken uitgevoerd.');
 }
 
@@ -996,7 +1039,7 @@ function setList(elId, arr, dotClass, detailFn, emptyMsg) {
             <span class="ov-dot ${dotClass}"></span>
             <div style="flex:1">
                 <div class="ov-naam">${s.naam}</div>
-                <div class="ov-detail">${detailFn(s)}</div>
+                <div class="ov-detail">${detailFn(s, id)}</div>
             </div>
         </div>`
     ).join('');
@@ -1061,7 +1104,7 @@ window.sendTestMail = function() {
     if (!cfg.pubkey || !cfg.service || !cfg.template) {
         showSetStatus('error', '❌ Vul eerst de EmailJS Public Key, Service ID en Template ID in en sla op.'); return;
     }
-    const params = buildMailParams('Test Student', testTo, 'Donderdag', '19 jun', '10:00–12:00', 'Dr. Testdocent', cfg.locatie, cfg.afzender, cfg.subject, cfg.body);
+    const params = buildMailParams('Test Student', testTo, 'Donderdag', '19 jun', '10:00–10:15', 'Dr. Testdocent', cfg.locatie, cfg.afzender, cfg.subject, cfg.body);
     emailjs.init({ publicKey: cfg.pubkey });
     showSetStatus('ok', '📨 Testmail wordt verstuurd…');
     emailjs.send(cfg.service, cfg.template, params)
@@ -1096,7 +1139,7 @@ function buildMailParams(naam, toEmail, dag, datum, tijd, docent, locatie, afzen
     };
 }
 
-function slotToDateParts(slotKey) {
+function slotToDateParts(slotKey, studentId) {
     const dagNm   = ['Maandag','Dinsdag','Woensdag','Donderdag','Vrijdag'];
     const maandNm = ['jan','feb','mrt','apr','mei','jun','jul'];
     const parts   = slotKey.split('-');
@@ -1106,10 +1149,22 @@ function slotToDateParts(slotKey) {
     const w       = weeks.find(x => x.week===weekNr);
     if (!w) return { dag:'?', datum:'?', tijd:'?' };
     const d = getDates(w.start, w.numDays)[dagIdx] || w.start;
+
+    // Specifiek ochtend-tijdslot opzoeken als we de student kennen
+    let tijd = isO ? '10:00–12:00' : '13:00–16:00';
+    if (isO && studentId) {
+        const s = _studenten[studentId];
+        if (s && s.docentId) {
+            const pos = slotPosition(s.docentId, slotKey, studentId);
+            if (pos >= 0 && pos < OCHTEND_TIMES.length) {
+                tijd = OCHTEND_TIMES[pos];
+            }
+        }
+    }
     return {
         dag:   dagNm[dagIdx] || '?',
         datum: d.getDate() + ' ' + maandNm[d.getMonth()] + ' 2026',
-        tijd:  isO ? '10:00–12:00' : '13:00–16:00',
+        tijd:  tijd,
     };
 }
 
@@ -1120,7 +1175,7 @@ function sendInviteMail(studentId, student, docent, slotKey) {
     const email = student.email || localStorage.getItem('email_' + studentId);
     if (!email) return;
 
-    const { dag, datum, tijd } = slotToDateParts(slotKey);
+    const { dag, datum, tijd } = slotToDateParts(slotKey, studentId);
     const params = buildMailParams(
         student.naam, email, dag, datum, tijd,
         docent ? docent.naam : '?',
@@ -1157,7 +1212,7 @@ window.resendMail = function(studentId) {
 // ════════════════════════════
 //  HELPERS
 // ════════════════════════════
-function slotLabel(slotKey) {
+function slotLabel(slotKey, studentId) {
     if (!slotKey) return '';
     const parts  = slotKey.split('-');
     const weekNr = parts[0].replace('W','');
@@ -1166,7 +1221,19 @@ function slotLabel(slotKey) {
     const w      = weeks.find(x => x.week===parseInt(weekNr));
     if (!w) return slotKey;
     const dates  = getDates(w.start, w.numDays);
-    return `Wk${weekNr} ${dagNamen[dagIdx] || '?'} ${formatDate(dates[dagIdx])} ${isO?'10–12u':'13–16u'}`;
+
+    // Probeer specifieke ochtendtijd te tonen als we de student kennen
+    let tijdLabel = isO ? '10–12u' : '13–16u';
+    if (isO && studentId) {
+        const s = _studenten[studentId];
+        if (s && s.docentId) {
+            const pos = slotPosition(s.docentId, slotKey, studentId);
+            if (pos >= 0 && pos < OCHTEND_TIMES.length) {
+                tijdLabel = OCHTEND_TIMES[pos];
+            }
+        }
+    }
+    return `Wk${weekNr} ${dagNamen[dagIdx] || '?'} ${formatDate(dates[dagIdx])} ${tijdLabel}`;
 }
 
 // ════════════════════════════
