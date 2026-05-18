@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -153,6 +154,7 @@
                 <option value="D37">Gabrielle Jansen</option>
                 <option value="D38">Francis Brands</option>
                 <option value="D39">Cynthia Lange</option>
+                <option value="D40">Li-Ann Croes</option>
             </select>
 
             <div id="content" style="display: none;">
@@ -284,7 +286,7 @@
         const months = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul'];
         const MAX_UREN = 80;
         // Docenten zonder urenbeperking — kunnen zich onbeperkt inroosteren
-        const onbeperktDocenten = ['D27', 'D35', 'D36', 'D38', 'D39']; // Conny, Ieke, Rosalie, Francis, Li-ann
+        const onbeperktDocenten = ['D27', 'D35', 'D36', 'D38', 'D39']; // Conny, Ieke, Rosalie, Francis, Cynthia
         function getMaxUren(docentId) {
             if (onbeperktDocenten.includes(docentId)) return 9999;
             return MAX_UREN;
